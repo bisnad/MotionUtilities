@@ -1,0 +1,4 @@
+Dependencies:
+
+Qualisys Pyton SDK: https://github.com/qualisys/qualisys_python_sdk
+Python OSC: https://pypi.org/project/python-osc/
