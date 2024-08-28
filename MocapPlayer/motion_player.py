@@ -35,7 +35,12 @@ class MotionPlayer():
 
         # compute local joint rotations and world joint positions
         mocap_tools = mocap.Mocap_Tools()
-        self.mocap_data["motion"]["rot_local"] = mocap_tools.euler_to_quat(self.mocap_data["motion"]["rot_local_euler"] , self.mocap_data["rot_sequence"])
+        
+        if(file_suffix == ".bvh" or file_suffix == ".BVH"):
+            self.mocap_data["motion"]["rot_local"] = mocap_tools.euler_to_quat_bvh(self.mocap_data["motion"]["rot_local_euler"] , self.mocap_data["rot_sequence"])
+        elif(file_suffix == ".fbx" or file_suffix == ".FBX"):
+            self.mocap_data["motion"]["rot_local"] = mocap_tools.euler_to_quat(self.mocap_data["motion"]["rot_local_euler"] , self.mocap_data["rot_sequence"])
+        
         self.mocap_data["motion"]["pos_world"], self.mocap_data["motion"]["rot_world"] = mocap_tools.local_to_world(self.mocap_data["motion"]["rot_local"], self.mocap_data["motion"]["pos_local"], self.mocap_data["skeleton"])
                 
         # update start, end, and play position

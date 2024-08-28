@@ -17,16 +17,23 @@ motion_player.config = {
     }
 """
 
-
+"""
 motion_player.config = { 
     "file_name": "D:/Data/mocap/Daniel/Zed/fbx/daniel_zed_solo1.fbx",
     "fps": 30
+    }
+"""
+
+
+motion_player.config = { 
+    "file_name": "D:/data/mocap/stocos/Solos/Canal_14-08-2023/fbx_50hz/Muriel_Embodied_Machine_variation.fbx",
+    "fps": 50
     }
 
 
 """
 motion_player.config = { 
-    "file_name": "D:/data/mocap/stocos/Solos/Canal_14-08-2023/fbx_50hz/Muriel_Embodied_Machine_variation.fbx",
+    "file_name": "D:/data/mocap/stocos/Solos/Canal_14-08-2023/bvh_50hz/Muriel_Embodied_Machine_variation.bvh",
     "fps": 50
     }
 """
