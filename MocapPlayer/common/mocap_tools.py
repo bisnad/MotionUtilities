@@ -7,6 +7,7 @@ import pandas
 import math
 import numpy as np
 import transforms3d as t3d
+from scipy.spatial.transform import Rotation
 from common import bvh_tools as bvh
 from common import fbx_tools as fbx
 
@@ -123,118 +124,23 @@ class Mocap_Tools:
 
     def euler_to_quat(self, rotations_euler, rot_sequence):
         
-        # rotations_euler shape: F x J x D (F: frame count, J: joint count, D: 3 (with angles in degrees))
-        # rot_sequence shape: D (D: 3 (integer indices))
+        rot_string = "".join([ "xyz"[i] for i in rot_sequence ])        
+        seq_length = rotations_euler.shape[0]
+        rotations_euler = np.reshape(rotations_euler, (-1, 3))
+        rotations_quat = Rotation.from_euler(rot_string, rotations_euler, degrees=True).as_quat(scalar_first=True)
         
-        rot_axes = [ [1, 0, 0], [0, 1, 0], [0, 0, 1] ]
-        
-        frame_count = rotations_euler.shape[0]
-        joint_count = rotations_euler.shape[1]
-        
-        rotations_quat = []
-        
-        for fI in range(frame_count):
-            
-            joint_rotations_quat = []
-            
-            for jI in range(joint_count):
-        
-                # convert degrees to radians
-                euler_1 = rotations_euler[fI, jI, 0]/180.0 * math.pi; # euler_x
-                euler_2 = rotations_euler[fI, jI, 1]/180.0 * math.pi; # euler_y
-                euler_3 = rotations_euler[fI, jI, 2]/180.0 * math.pi; # euler_z
-
-                # convert euler rotation to quaternion
-                quat_identity = t3d.quaternions.qeye()
-
-                """
-                quat_1 = t3d.quaternions.axangle2quat(rot_axes[ rot_sequence[0] ], euler_1) 
-                quat_2 = t3d.quaternions.axangle2quat(rot_axes[ rot_sequence[1] ], euler_2)
-                quat_3 = t3d.quaternions.axangle2quat(rot_axes[ rot_sequence[2] ], euler_3)
-                """
-                
-                quat_1 = t3d.quaternions.axangle2quat(rot_axes[0], euler_1) # quat_x
-                quat_2 = t3d.quaternions.axangle2quat(rot_axes[1], euler_2) # quat_Y
-                quat_3 = t3d.quaternions.axangle2quat(rot_axes[2], euler_3) # quat_z
-                
-                # quat_x = t3d.quaternions.axangle2quat([1, 0, 0], euler_x)
-                # quat_y = t3d.quaternions.axangle2quat([0, 1, 0], euler_y)
-                # quat_z = t3d.quaternions.axangle2quat([0, 0, 1], euler_z)
-                
-                joint_rotation_quat = t3d.quaternions.qeye()
-                
-                rotations = [quat_1, quat_2, quat_3]
-                
-                """
-                # for some reason, this works for bvh files with rot sequence 2, 0, 1
-                # but not for fbx files with rot sequence 0, 1, 2
-                for rot_index in rot_sequence:
-                    joint_rotation_quat = t3d.quaternions.qmult(joint_rotation_quat, rotations[rot_index])
-                """
-                
-
-                # for some reason, this works for fbx files with rot sequence 0, 1, 2
-                # but not for bvh files with rot sequence 2, 0, 1
-                for rot_index in reversed(rot_sequence):
-                    joint_rotation_quat = t3d.quaternions.qmult(joint_rotation_quat, rotations[rot_index])
-
-                
-                """
-                for rot_index in range(2, -1, -1):
-                    joint_rotation_quat = t3d.quaternions.qmult(joint_rotation_quat, rotations[rot_index])
-                """
-                
-                
-                """
-                rotations = [quat_x, quat_y, quat_z]
-                for rot_index in rot_sequence:
-                    joint_rotation_quat = t3d.quaternions.qmult(joint_rotation_quat, rotations[rot_index])
-                """
-                
-                """
-                for rot_index in range(3):
-                    joint_rotation_quat = t3d.quaternions.qmult(joint_rotation_quat, rotations[rot_index])
-                """
-                
-                joint_rotations_quat.append(joint_rotation_quat)
-                
-            joint_rotations_quat = np.stack(joint_rotations_quat, axis=0)
-            
-            rotations_quat.append(joint_rotations_quat)
-                
-        
-        rotations_quat = np.stack(rotations_quat, axis=0)
+        rotations_quat = np.reshape(rotations_quat, (seq_length, -1, 4))
         
         return rotations_quat
 
-
     def quat_to_euler(self, rotations_quat, rot_sequence):
         
-        # rotations_quat shape: F x J x D (F: frame count, J: joint count, D: 4 )
-        # rot_sequence shape: D (D: 3 (integer indices))
+        rot_string = "".join([ "xyz"[i] for i in rot_sequence ])
+        seq_length = rotations_quat.shape[0]
         
-        frame_count = rotations_quat.shape[0]
-        joint_count = rotations_quat.shape[1]
-        
-        rotations_euler = []
-        
-        for fI in range(frame_count):
-            
-            joint_rotations_euler = []
-            
-            for jI in range(joint_count):
-                
-                rotation_quat = rotations_quat[fI, jI]
-                #rotation_euler = np.array(t3d.euler.quat2euler(rotation_quat, axes="sxyz"))
-                rotation_euler = np.array(t3d.euler.quat2euler(rotation_quat, axes="syxz"))
-                rotation_euler  *= 180.0 / math.pi
-                rotation_euler = np.array((rotation_euler[1], rotation_euler[0], rotation_euler[2]))
-
-                joint_rotations_euler.append(rotation_euler)
-
-            rotations_euler.append(joint_rotations_euler)
-                
-        rotations_euler = np.stack(rotations_euler, axis=0)
+        rotations_quat = np.reshape(rotations_quat, (-1, 4))
+        rotations_euler = Rotation.from_quat(rotations_quat, scalar_first=True).as_euler(rot_string, degrees=True)
+        rotations_euler = np.reshape(rotations_euler, (seq_length, -1, 3))
                 
         return rotations_euler
     
