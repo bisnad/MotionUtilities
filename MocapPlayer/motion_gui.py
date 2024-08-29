@@ -308,6 +308,8 @@ class MotionGui(QtWidgets.QWidget):
         self.player_pose_lpos =  self.player.get_pose("pos_local")
         self.player_pose_lrot = self.player.get_pose("rot_local")
         
+        #print(self.player_pose_lrot)
+        
     def update_osc(self):
         
         osc_values = np.reshape(self.player_pose_lpos, (-1)).tolist()

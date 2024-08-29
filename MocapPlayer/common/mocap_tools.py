@@ -1,8 +1,3 @@
-"""
-There is currently a bug in the euler_to_quat function
-that messes up bvh imports but is fine for fbx imports
-"""
-
 import pandas
 import math
 import numpy as np
@@ -10,6 +5,7 @@ import transforms3d as t3d
 from scipy.spatial.transform import Rotation
 from common import bvh_tools as bvh
 from common import fbx_tools as fbx
+import copy
 
 class Mocap_Tools:
 
@@ -72,6 +68,34 @@ class Mocap_Tools:
         
         return bvh_data
     
+    # warning: this doesn't create any fbx nodes
+    # the nodes are only created when writing the fmx_data to a file using the FBX_Tools 
+    def mocap_to_fbx(self, all_motion_data):
+        
+        fbx_data = []
+        
+        for motion_per_skel_data in all_motion_data:
+        
+            fbx_per_skel_data = fbx.FBX_Mocap_Data()
+            
+            motion_skeleton = motion_per_skel_data["skeleton"]
+            motion_motion = motion_per_skel_data["motion"]
+            
+            fbx_per_skel_data.motion_frame_rate = motion_per_skel_data["frame_rate"]
+            fbx_per_skel_data.motion_rot_sequence = motion_per_skel_data["rot_sequence"]
+            fbx_per_skel_data.skeleton_root = motion_skeleton["root"]
+            fbx_per_skel_data.skeleton_joints = motion_skeleton["joints"]
+            fbx_per_skel_data.skeleton_children = motion_skeleton["children"]
+            fbx_per_skel_data.skeleton_parents = motion_skeleton["parents"]
+            fbx_per_skel_data.skeleton_joint_offsets = motion_skeleton["offsets"]
+            fbx_per_skel_data.motion_pos_local = motion_motion["pos_local"]
+            fbx_per_skel_data.motion_rot_local_euler = motion_motion["rot_local_euler"]
+            fbx_per_skel_data.motion_frame_count = fbx_per_skel_data.motion_rot_local_euler.shape[0]
+
+            fbx_data.append(fbx_per_skel_data)
+            
+        return fbx_data
+    
     def local_to_world(self, rot_local, pos_local, skeleton):
         
         root_name = skeleton["root"]
@@ -124,8 +148,7 @@ class Mocap_Tools:
 
     def euler_to_quat(self, rotations_euler, rot_sequence):
         
-        rot_string = "".join([ "xyz"[i] for i in rot_sequence ])      
-
+        rot_string = "".join([ "xyz"[i] for i in rot_sequence ])        
         seq_length = rotations_euler.shape[0]
         rotations_euler = np.reshape(rotations_euler, (-1, 3))
         rotations_quat = Rotation.from_euler(rot_string, rotations_euler, degrees=True).as_quat(scalar_first=True)
@@ -133,7 +156,7 @@ class Mocap_Tools:
         rotations_quat = np.reshape(rotations_quat, (seq_length, -1, 4))
         
         return rotations_quat
-    
+
     # for some unknown reason, euler_to_quat messes up when working with bvh data
     # this is a work around
     def euler_to_quat_bvh(self, rotations_euler, rot_sequence):
@@ -180,8 +203,6 @@ class Mocap_Tools:
         rotations_quat = np.stack(rotations_quat, axis=0)
         
         return rotations_quat
-
-
     def quat_to_euler(self, rotations_quat, rot_sequence):
         
         rot_string = "".join([ "xyz"[i] for i in rot_sequence ])
@@ -192,7 +213,7 @@ class Mocap_Tools:
         rotations_euler = np.reshape(rotations_euler, (seq_length, -1, 3))
                 
         return rotations_euler
-    
+
     # for some unknown reason, quat_to_euler messes up when working with bvh data
     # this is a work around
     def quat_to_euler_bvh(self, rotations_quat, rot_sequence):
@@ -334,7 +355,7 @@ class Mocap_Tools:
     
     def mocap_excerpt(self, mocap_data, start_frame=-1, end_frame=-1):
         
-        mocap_data_excerpt = np.deepcopy(mocap_data)
+        mocap_data_excerpt = copy.deepcopy(mocap_data)
         
         motion_data = mocap_data_excerpt["motion"]
 
