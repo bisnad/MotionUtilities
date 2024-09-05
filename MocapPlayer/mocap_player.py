@@ -31,12 +31,12 @@ motion_player.config = {
     }
 """
 
-
+"""
 motion_player.config = { 
     "file_name": "D:/data/mocap/stocos/Solos/Canal_14-08-2023/bvh_50hz/Muriel_Embodied_Machine_variation.bvh",
     "fps": 50
     }
-
+"""
 
 """
 motion_player.config = { 
@@ -45,7 +45,11 @@ motion_player.config = {
     }
 """
 
-player = motion_player.MotionPlayer(motion_player.config)
+
+motion_player.config = { 
+    "file_name": "D:/Data/mocap/stocos/Solos/MovementQualities/fbx_50hz_2/volume_fullbody_take1.fbx",
+    "fps": 50
+    }
 
 
 """
