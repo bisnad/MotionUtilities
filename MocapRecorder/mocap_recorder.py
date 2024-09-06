@@ -21,7 +21,7 @@ OSC Settings
 """
 
 osc_receive_ip = "0.0.0.0"
-osc_receive_port = 9007
+osc_receive_port = 9000
 
 
 """
@@ -55,7 +55,7 @@ class OscReceiver(QtCore.QObject):
         osc_address = addr
         osc_values = args
         
-        #print("osc_address ", osc_address, " osc_values ", osc_values)
+        print("osc_address ", osc_address, " osc_values ", osc_values)
         
         values_dict = {
             osc_address: osc_values
@@ -256,6 +256,8 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def __init__(self, canvas, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.setWindowTitle("Mocap Recorder")
         
         # main layout
         central_widget = QtWidgets.QWidget()
@@ -318,8 +320,8 @@ if __name__ == "__main__":
     
     #canvas.add_sensor_view("/mocap/0/joint/pos_world", 87, (-2000.0, 2000.0), 100, [(1.0, 0.0, 0.0, 1.0)] * 87)
     #canvas.add_sensor_view("/mocap/0/joint/pos2d_world", 34, (0.0, 2000.0), 100, [(1.0, 0.0, 0.0, 1.0)] * 34)
-    #canvas.add_sensor_view("/gyroscope", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
-    #canvas.add_sensor_view("/accelerometer", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
+    canvas.add_sensor_view("/gyroscope", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
+    canvas.add_sensor_view("/accelerometer", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
     #canvas.add_sensor_view("/gyroscope", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
     
     win = MainWindow(canvas)
