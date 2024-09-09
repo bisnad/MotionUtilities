@@ -10,6 +10,11 @@ import motion_gui
 Setup Motion Player
 """
 
+motion_player.config = { 
+    "file_name": "data/mocap/accumulation_fullbody_take1.bvh",
+    "fps": 50
+    }
+
 """
 motion_player.config = { 
     "file_name": "data/mocap/zachary_music_improvisation.fbx",
@@ -45,11 +50,22 @@ motion_player.config = {
     }
 """
 
-
+"""
 motion_player.config = { 
     "file_name": "D:/Data/mocap/stocos/Solos/MovementQualities/fbx_50hz_2/volume_fullbody_take1.fbx",
     "fps": 50
     }
+"""
+
+"""
+motion_player.config = { 
+    "file_name": "D:/Data/mocap/stocos/Solos/MovementQualities/bvh_50hz/polytopia_fullbody_take1.bvh",
+    "fps": 50
+    }
+"""
+
+
+player = motion_player.MotionPlayer(motion_player.config)
 
 
 """
