@@ -9,9 +9,10 @@ The MocapRecorder is a simple Python-based software for recording sensor data st
 ### Features
 
 The recorder is mainly meant to receive and store sensor data streams that it receives via OSC. 
+The OSC messages are stored alongside a timestamp that represents the time when the message was received.
+The recorded sensor values can be associated with class labels that are stored as well.
 The recording functionality works for any type of OSC message even if it doesn't contain sensor data.
 The receives sensor values can be optionally visualised as time-series plots.
-The recorded sensor values can be associated with class labels that are stored alongside.
 Sensor data and class labels are stored as pickled Python dictionaries. 
 The recorder a simple GUI to start and stop recordings and assign class labels.
 
