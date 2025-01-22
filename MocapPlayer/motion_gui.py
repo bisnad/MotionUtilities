@@ -22,7 +22,7 @@ config = {"player": None,
           "view_center": np.array([0, 0, 100], dtype=np.float32),
           "view_ele": 90,
           "view_azi": -90,
-          "view_dist": 2500,
+          "view_dist": 250,
           "view_line_width": 2.0
     }
 
@@ -196,7 +196,7 @@ class MotionGui(QtWidgets.QWidget):
                 
     def choose_file(self):
         
-        file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 'mocap',"Mocap Files (*.bvh)")
+        file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 'mocap',"Mocap Files (*.bvh *.fbx)")
         
         file_name = file_name[0]
 
@@ -329,12 +329,15 @@ class MotionGui(QtWidgets.QWidget):
         
         pose = self.player_pose_wpos
 
-        lines_data = pose[np.array(self.edges).flatten()] * 100.0
+        points_data = pose
+        lines_data = pose[np.array(self.edges).flatten()]
 
         self.pose_canvas_lines.setData(pos=lines_data, mode="lines", color=(1.0, 1.0, 1.0, 0.5), width=self.view_line_width)
-
-    def change_play_frame(self, frame):
+        self.pose_canvas_points.setData(pos=pose, color=(1.0, 1.0, 1.0, 0.5))
         
+    def change_play_frame(self, frame):
+        file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 'mocap',"Mocap Files (*.bvh *.fbx)")
+
         self.player.set_play_frame(frame)
         
     def change_start_play_frame(self, frame):

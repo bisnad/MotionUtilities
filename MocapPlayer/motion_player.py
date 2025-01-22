@@ -46,7 +46,7 @@ class MotionPlayer():
         # update start, end, and play position
         self.play_frame = 0
         self.start_play_frame = 0
-        self.end_play_frame = self.mocap_data["motion"]["pos_world"].shape[0]
+        self.end_play_frame = self.mocap_data["motion"]["pos_world"].shape[0] - 1
 
     def load_bvh(self, file_name):
         # load mocap data

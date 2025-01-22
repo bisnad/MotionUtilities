@@ -489,16 +489,16 @@ class FBX_Tools():
 
         node_posrot_dict = {}
         
-        for nI, node in enumerate(pNodes):
+        for node in pNodes:
             
-            print("node nr ", nI, " name ", node.GetName())
+            print("node ", node.GetName())
             
             node_pos, node_rot_euler = FBX_Tools.getNodeRotPos(node, pAnimLayer, pFrameCount)
 
             node_pos = np.transpose(np.array(node_pos))
             node_rot_euler = np.transpose(np.array(node_rot_euler))
             
-            # print("node_pos s ", node_pos.shape)
+            print("node_pos s ", node_pos.shape)
             #print("node_rot_euler s ", node_rot_euler.shape)
             
             pos_local.append(node_pos)

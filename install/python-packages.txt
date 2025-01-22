@@ -3,7 +3,7 @@ add conda-forge as additional default channel !
 download python fbx sdk from: https://aps.autodesk.com/developer/overview/fbx-sdk
 
 conda install spyder
-conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia (windows)
+conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=11.8 -c pytorch -c nvidia (windows)
 conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 -c pytorch (macos)
 conda install matplotlib
 conda install scikit-learn
@@ -27,4 +27,3 @@ pip install PySoundFile
 pip install simpleaudio
 pip install pyaudio
 pip install fbx-2020.3.7-cp310-none-win_amd64.whl
-
