@@ -129,9 +129,7 @@ class MotionGui(QtWidgets.QWidget):
         
         self.sender_ip = sender_ip
         self.sender_port = sender_port
-        
-        print("sender_ip ", self.sender_ip)
-        
+
         self.q_sender_ip = []
         for i in range(4):
             _w = QtWidgets.QSpinBox(self)
@@ -139,6 +137,7 @@ class MotionGui(QtWidgets.QWidget):
             _w.setMaximum(255)
             _w.setValue(self.sender_ip[i])
             _w.valueChanged.connect(lambda:self.change_sender_ip(_w))  
+
             self.q_sender_ip.append(_w)
         self.q_sender_port = QtWidgets.QSpinBox(self)
         self.q_sender_port.setMinimum(0)
@@ -361,14 +360,16 @@ class MotionGui(QtWidgets.QWidget):
 
     def change_sender_ip(self, widget):
         
-        if widget == self.q_sender_ip[0]:
-            self.sender_ip[0] = widget.value()
-        elif widget == self.q_osc_ip[1]:
-            self.sender_ip[1] = widget.value()
-        elif widget == self.q_osc_ip[2]:
-            self.sender_ip[2] = widget.value()
+        sender_widget = super().sender()
+
+        if sender_widget == self.q_sender_ip[0]:
+            self.sender_ip[0] = sender_widget.value()
+        elif sender_widget == self.q_sender_ip[1]:
+            self.sender_ip[1] = sender_widget.value()
+        elif sender_widget == self.q_sender_ip[2]:
+            self.sender_ip[2] = sender_widget.value()
         else:
-            self.sender_ip[3] = widget.value()
+            self.sender_ip[3] = sender_widget.value()
             
         sender_active = self.sender.get_active()
         sender_ip = "{}.{}.{}.{}".format(self.sender_ip[0], self.sender_ip[1], self.sender_ip[2], self.sender_ip[3])
