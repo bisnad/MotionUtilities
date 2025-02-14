@@ -4,23 +4,23 @@ The "Motion Utilities" category of the AI-Toolbox contains a collection of small
 
 The following tools are available:
 
-- [MocapPlayer](MocapPlayer/Readme.md) 
+- [MocapPlayer](MocapPlayer) 
 
   A python-based tool for playing recorded motion capture data and sending joint data via OSC
 
-- [MocapPlayer_old](MocapPlayer_old/Readme.md) 
+- [MocapPlayer_old](MocapPlayer_old) 
 
   A previous version of the MocapPlayer, that is needed in combination with some older tools
 
-- [MocapRecorder](MocapRecorder/Readme.md) 
+- [MocapRecorder](MocapRecorder) 
 
   A python-based tool to record time-based sensor data
 
-- [Qtm2Osc](Qtm2Osc/Readme.md) 
+- [Qtm2Osc](Qtm2Osc) 
 
   A python-based tool for converting the Qualisys native communication protocol to OSC
 
-- [XSens2Osc](XSens2Osc/Readme.md)
+- [XSens2Osc](XSens2Osc)
 
   A C++-based tool for converting the XSens native communication protocol to OSC
 
