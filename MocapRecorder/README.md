@@ -1,4 +1,4 @@
-## MocapRecorder
+## AI-Toolbox - Motion Utilities - Mocap Recorder
 
 ![MocapPlayer](./data/media/MocapRecorder.JPG)
 

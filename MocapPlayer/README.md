@@ -1,4 +1,4 @@
-## MocapPlayer
+## AI-Toolbox - Motion Utilities - Mocap Player
 
 ![MocapPlayer](./data/media/MocapPlayer.JPG)
 
@@ -42,5 +42,4 @@ The following OSC messages are received by the MocapPlayer:
 - set playback position to specific frame: `/player/frame <int frame>`
 - set start frame of playback range : `/player/start_frame <int frame>`
 - set end frame of playback range : `/player/end_frame <int frame>`
-
 

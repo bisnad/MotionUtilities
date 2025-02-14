@@ -10,6 +10,11 @@ import motion_gui
 Setup Motion Player
 """
 
+motion_player.config = { 
+    "file_name": "D:/Data/mocap/stocos/Duets/Amsterdam_2024/fbx_50hz/Jason_Take1.fbx",
+    "fps": 50
+    }
+
 """
 motion_player.config = { 
     "file_name": "data/mocap/accumulation_fullbody_take1.bvh",
@@ -31,10 +36,12 @@ motion_player.config = {
     }
 """
 
+"""
 motion_player.config = { 
     "file_name": "D:/data/mocap/stocos/Solos/Canal_14-08-2023/fbx_50hz/Muriel_Embodied_Machine_variation.fbx",
     "fps": 50
     }
+"""
 
 """
 motion_player.config = { 

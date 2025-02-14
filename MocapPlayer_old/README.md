@@ -1,4 +1,4 @@
-## MocapPlayer_old
+## AI-Toolbox - Motion Utilities - Mocap Player (old)
 
 ![MocapPlayer](./data/media/MocapPlayer.JPG)
 

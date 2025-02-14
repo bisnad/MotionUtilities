@@ -1,4 +1,4 @@
-## XSens2Osc
+## AI-Toolbox - Motion Utilities - XSens2Osc
 
 ### Summary
 
@@ -13,6 +13,14 @@ XSens2Osc supports an arbitrary number of performers.
 ### Limitations
 
 XSens2Osc doesn't provide a GUI for changing the network address and port address for sending OSC messages to. These settings need to be changed by editing the "config.json" file in the bin/data/ Folder.
+
+### Dependencies
+
+To compile the XSens2Osc tool from source, one additional Addon that is not part of the openFrameworks default distribution need to be present in the addons directory of openFrameworks. This addon can be downloaded from its own dedicated online repository:
+
+- [ofxDabBase](https://github.com/bisnad/ofxDabBase) 
+
+  ofxDabBase provides some basic functionality in the form of classes that deal with multidimensional data, text file parsing, and information flow. 
 
 ### OSC Communication
 
@@ -41,8 +49,4 @@ tracking sensor accelerations as list of Euler angles in world coordinates: `/sk
 tracking sensor accelerations as list of Euler angles in relative coordinates: `/skel/skelID/tracker/accel <float s1x> <float s1y> <float s1z> .... <float sNx> <float sNy> <float sNz>` 
 
 tracking sensor angular velocities as list of Euler angles in relative coordinates: `/skel/skelID/tracker/angular_vel <float s1x> <float s1y> <float s1z> .... <float sNx> <float sNy> <float sNz>` 
-
-
-
-/skel/skelID/tracker/magnet
 
