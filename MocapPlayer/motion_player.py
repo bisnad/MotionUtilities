@@ -104,7 +104,11 @@ class MotionPlayer():
             frame = self.end_play_frame - 1
 
         self.start_play_frame = frame
-        self.play_frame  = self.start_play_frame
+        
+        if self.play_frame < self.start_play_frame:
+            self.play_frame = self.start_play_frame
+        
+        #self.play_frame  = self.start_play_frame
     
     def get_end_play_frame(self):
         return self.end_play_frame
@@ -115,7 +119,11 @@ class MotionPlayer():
              frame = self.start_play_frame + 1
 
         self.end_play_frame = frame
-        self.play_frame  = self.end_play_frame
+        
+        if self.play_frame > self.end_play_frame:
+            self.play_frame = self.end_play_frame
+        
+        #self.play_frame  = self.end_play_frame
 
     def get_skeleton(self):
         return self.mocap_data["skeleton"]

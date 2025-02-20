@@ -37,6 +37,7 @@ class MotionGui(QtWidgets.QWidget):
         
         fps = int(self.player.get_fps())
         self.pose_thread_interval = 1.0 / fps
+        self.pose_thread_event = None
     
         # header
         file_name = self.player.get_file_name()
@@ -182,6 +183,8 @@ class MotionGui(QtWidgets.QWidget):
         self.setGeometry(50,50,512,612)
         self.setWindowTitle("Mocap Player")
         
+        self.gui_needs_repaint = False
+        
     def _create_edges(self):
         
         skeleton = self.player.get_skeleton()
@@ -206,30 +209,32 @@ class MotionGui(QtWidgets.QWidget):
         
     def load_file(self, file_name):
         
-        print("load_file: ", file_name)
+        #print("load_file: ", file_name)
         
         sender_active = self.sender.get_active()
         
         if sender_active == True:
             self.sender.set_active(False)
-
+            
         self.q_file_label.setText("Loading...")
         self.q_file_label.update()
-        self.q_file_label.repaint()
+        
+        #self.q_file_label.repaint()
         
         self.player.load(file_name)
-        
         self.pose_thread_interval = 1.0 / self.player.get_fps() 
         self._create_edges()
         
         self.q_file_label.setText(Path(file_name).stem)
-        
         self.update_gui()
-        
+
         fps = int(self.player.get_fps())
+        play_frame = self.player.get_play_frame()
         start_play_frame = self.player.get_start_play_frame()
         end_play_frame = self.player.get_end_play_frame()
         
+        #self.q_frame_label.setText(f"sequence start frame {start_play_frame} end frame {end_play_frame} play frame {play_frame}")
+
         self.q_fps.setValue(fps)
         self.q_frame_slider.setMaximum(end_play_frame)
         self.q_start_frame_slider.setMaximum(end_play_frame)
@@ -238,14 +243,16 @@ class MotionGui(QtWidgets.QWidget):
         self.q_start_frame_slider.setValue(start_play_frame)
         
         self.q_frame_slider.update()
-        self.q_frame_slider.repaint()
+        #self.q_frame_slider.repaint()
         self.q_start_frame_slider.update()
-        self.q_start_frame_slider.repaint()
+        #self.q_start_frame_slider.repaint()
         self.q_end_frame_slider.update()
-        self.q_end_frame_slider.repaint()
+        #self.q_end_frame_slider.repaint()
         
         if sender_active == True:
             self.sender.set_active(True)
+
+        self.gui_needs_repaint = True
         
     def start(self):
 
@@ -255,6 +262,9 @@ class MotionGui(QtWidgets.QWidget):
         self.pose_thread.start()
         
     def stop(self):
+        
+        if self.pose_thread_event is None:
+            return
 
         self.pose_thread_event.set()
         self.pose_thread.join()
@@ -276,6 +286,14 @@ class MotionGui(QtWidgets.QWidget):
         while self.pose_thread_event.is_set() == False:
  
             start_time = time.time()            
+            
+            if self.gui_needs_repaint == True:
+                self.q_file_label.repaint()
+                self.q_frame_slider.repaint()
+                self.q_start_frame_slider.repaint()
+                self.q_end_frame_slider.repaint()
+                
+                self.gui_needs_repaint = False
 
             self.update_gui()
             self.update_player()
@@ -297,6 +315,7 @@ class MotionGui(QtWidgets.QWidget):
         end_play_frame = self.player.get_end_play_frame()
         
         self.q_frame_label.setText(f"sequence start frame {start_play_frame} end frame {end_play_frame} play frame {play_frame}")
+        self.q_frame_label.update()
         self.q_frame_slider.setValue(play_frame)
             
     def update_player(self):
@@ -335,21 +354,17 @@ class MotionGui(QtWidgets.QWidget):
         self.pose_canvas_points.setData(pos=pose, color=(1.0, 1.0, 1.0, 0.5))
         
     def change_play_frame(self, frame):
-        file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 'mocap',"Mocap Files (*.bvh *.fbx)")
-
         self.player.set_play_frame(frame)
         
     def change_start_play_frame(self, frame):
         
         self.player.set_start_play_frame(frame)
-        
         start_play_frame = self.player.get_start_play_frame()
         self.q_start_frame_slider.setValue(start_play_frame)
-        
+            
     def change_end_play_frame(self, frame):
         
         self.player.set_end_play_frame(frame)
-        
         end_play_frame = self.player.get_end_play_frame()
         self.q_end_frame_slider.setValue(end_play_frame)
 

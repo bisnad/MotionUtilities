@@ -45,12 +45,9 @@ class MotionControl():
         
     def player_load(self, address, *args):
         
-        print("args ", *args)
-        
         filename = args[0]
         
-        print("filename ", filename)
-
+        self.gui.stop()
         self.gui.load_file(filename)
         
     def player_start(self, address, *args):
