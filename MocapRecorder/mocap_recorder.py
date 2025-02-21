@@ -22,7 +22,6 @@ OSC Settings
 
 osc_receive_ip = "0.0.0.0"
 osc_receive_port = 9004
-#osc_receive_port = 12000
 
 """
 OSC Receiver
@@ -318,12 +317,31 @@ if __name__ == "__main__":
     
     canvas = Canvas((800, 600))
     
-    #canvas.add_sensor_view("/mocap/0/joint/pos_world", 87, (-2000.0, 2000.0), 100, [(1.0, 0.0, 0.0, 1.0)] * 87)
-    #canvas.add_sensor_view("/mocap/0/joint/pos2d_world", 34, (0.0, 2000.0), 100, [(1.0, 0.0, 0.0, 1.0)] * 34)
-    #canvas.add_sensor_view("/gyroscope", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
-    #canvas.add_sensor_view("/accelerometer", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
-    #canvas.add_sensor_view("/gyroscope", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
-    
+    """
+    #Example 1: visualise joint positions from a mocap recording with 29 joints, and 3 dimensions for each position, timeseries contain 100 values and are all coloured red
+    canvas.add_sensor_view("/mocap/0/joint/pos_world", 87, (-2000.0, 2000.0), 100, [(1.0, 0.0, 0.0, 1.0)] * 87)
+    """
+
+    """
+    #Example 2: visualise joint positions from a pose estimation recording with 17 joints, and 2 dimensions for each position, timeseries contain 100 values and are all coloured red
+    canvas.add_sensor_view("/mocap/0/joint/pos_world", 87, (-2000.0, 2000.0), 100, [(1.0, 0.0, 0.0, 1.0)] * 87)
+    """
+
+    """
+    #Example 3: visualise 3 gyroscope values from a single IMU sensor, timeseries contain 100 values and are coloured red, green, and blue
+    canvas.add_sensor_view("/gyroscope", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
+    """
+
+    """
+    #Example 3: visualise 3 gyroscope values from a single IMU sensor, timeseries contain 100 values and are coloured red, green, and blue
+    canvas.add_sensor_view("/gyroscope", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
+    """
+
+    """
+    #Example 4: visualise 3 accelerometer values for a single IMU sensor, timeseries contain 100 valuees and are coloured red, green, and blue
+    canvas.add_sensor_view("/accelerometer", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
+    """
+
     win = MainWindow(canvas)
 
     win.class_input.valueChanged.connect(motion_recorder.set_class_id)

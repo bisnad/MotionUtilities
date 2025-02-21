@@ -50,7 +50,7 @@ In this code, the string "data/mocap/Muriel_Take1.fbx" needs to be replaced to s
 
 #### Functionality
 
-The software can play motion capture recordings of a single performer that have been saved in [FBX](https://en.wikipedia.org/wiki/FBX#:~:text=FBX%20(from%20Filmbox)%20is%20a,series%20of%20video%20game%20middleware.) or [BVH](https://en.wikipedia.org/wiki/Biovision_Hierarchy#:~:text=BioVision%20Hierarchy%20(BVH)%20is%20a,acquired%20by%20Motion%20Analysis%20Corporation.)) format. The playback loops between a user specified start and end frame. While a recording is played, the recorded performer is graphically depicted as a simple stick figure. Also, while the software plays, it sends for each frame the joint information of the performer as OSC data. This information includes the joint position and rotation both in global and local coordinates. In global coordinates, joint positions and rotations are relative to an absolute reference position and rotation in space.  In local coordinates, joint positions and rotations are relative to the positions and rotations of the parent joints.  Before closing the software, playback has to be stopped.
+The software can play motion capture recordings of a single performer that have been saved in [FBX](https://en.wikipedia.org/wiki/FBX#:~:text=FBX%20(from%20Filmbox)%20is%20a,series%20of%20video%20game%20middleware.) or [BVH](https://en.wikipedia.org/wiki/Biovision_Hierarchy#:~:text=BioVision%20Hierarchy%20(BVH)%20is%20a,acquired%20by%20Motion%20Analysis%20Corporation.)) format. The playback loops between a user specified start and end frame. While a recording is played, the recorded performer is graphically depicted as a simple stick figure. Also, while the software plays, it sends for each frame the joint information of the performer as [OSC](https://en.wikipedia.org/wiki/Open_Sound_Control) data. This information includes the joint position and rotation both in global and local coordinates. In global coordinates, joint positions and rotations are relative to an absolute reference position and rotation in space.  In local coordinates, joint positions and rotations are relative to the positions and rotations of the parent joints.  Before closing the software, playback has to be stopped.
 
 #### Graphical User Interface
 
@@ -86,7 +86,7 @@ The software can be remote controlled by sending OSC messages to it. By default,
 motion_control.config["port"] = 9002
 ```
 
-In this code, the number 9002 needs to be replaced to  to specify a different port.
+In this code, the number 9002 needs to be replaced to specify a different port.
 
 An example Max patch demonstrates the use of the remote control functionality. The following OSC messages can be used to remote control the software. 
 
