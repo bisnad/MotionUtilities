@@ -18,7 +18,7 @@ The software can be downloaded by cloning the [MotionUtilities Github repository
 
 #### Start
 
-The Qualisys Track Manager software should be started before the Qtm2Osc. Qtm2Osccan be started either by double clicking the qtm_to_osc.bat (Windows) or qtm_to_osc.sh (MacOS) shell scripts or by typing the following commands into the Anaconda terminal:
+The Qualisys Track Manager software should be started before the Qtm2Osc. Qtm2Osccan be started either by double clicking the qtm_to_osc.bat (Windows) shell scripts or by typing the following commands into the Anaconda terminal:
 
 ```
 conda activate qtm
@@ -54,3 +54,4 @@ In this code, the strings "2.0.0.31" and "127.0.0.1" needs to be replaced to spe
 ### Limitations
 
 Qtm2Osc only works with motion capture data from a single performer.
+Qtm2Osc only works on Windows since the Qualisys Track Manager software is not available for MacOS.
