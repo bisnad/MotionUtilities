@@ -11,66 +11,23 @@ Setup Motion Player
 """
 
 motion_player.config = { 
-    "file_name": "D:/Data/mocap/stocos/Duets/Amsterdam_2024/fbx_50hz/Jason_Take1.fbx",
+    "file_name": "data/mocap/Muriel_Take1.fbx",
     "fps": 50
     }
 
 """
 motion_player.config = { 
-    "file_name": "data/mocap/accumulation_fullbody_take1.bvh",
-    "fps": 50
-    }
-"""
-
-"""
-motion_player.config = { 
-    "file_name": "data/mocap/zachary_music_improvisation.fbx",
+    "file_name": "../../AIToolbox/Data/Mocap/Stocos/Solos/MovementQualities_Qualisys/fbx/polytopia_fullbody_take1.fbx",
     "fps": 50
     }
 """
 
 """
 motion_player.config = { 
-    "file_name": "D:/Data/mocap/Daniel/Zed/fbx/daniel_zed_solo1.fbx",
-    "fps": 30
-    }
-"""
-
-"""
-motion_player.config = { 
-    "file_name": "D:/data/mocap/stocos/Solos/Canal_14-08-2023/fbx_50hz/Muriel_Embodied_Machine_variation.fbx",
+    "file_name": "../../AIToolbox/Data/Mocap/Stocos/Duets/Amsterdam_2024_XSens/fbx/Sherise_Take3.fbx",
     "fps": 50
     }
 """
-
-"""
-motion_player.config = { 
-    "file_name": "D:/data/mocap/stocos/Solos/Canal_14-08-2023/bvh_50hz/Muriel_Embodied_Machine_variation.bvh",
-    "fps": 50
-    }
-"""
-
-"""
-motion_player.config = { 
-    "file_name": "D:/Data/mocap/stocos/Duets/Amsterdam_2024/fbx_50hz/Sherise_Take3.fbx",
-    "fps": 50
-    }
-"""
-
-"""
-motion_player.config = { 
-    "file_name": "D:/Data/mocap/stocos/Solos/MovementQualities/fbx_50hz_2/volume_fullbody_take1.fbx",
-    "fps": 50
-    }
-"""
-
-"""
-motion_player.config = { 
-    "file_name": "D:/Data/mocap/stocos/Solos/MovementQualities/bvh_50hz/polytopia_fullbody_take1.bvh",
-    "fps": 50
-    }
-"""
-
 
 player = motion_player.MotionPlayer(motion_player.config)
 
