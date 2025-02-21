@@ -11,11 +11,8 @@ from pythonosc import dispatcher
 from pythonosc import osc_server
 from pythonosc import udp_client
 
-#osc_tracking_send_address = "169.254.65.161"
 osc_tracking_send_address = "2.0.0.31"
 osc_tracking_send_port = 23456
-#osc_tracking_send_address2 = "169.254.65.238"
-#osc_tracking_send_address2 = "2.0.0.32"
 osc_tracking_send_address2 = "127.0.0.1"
 osc_tracking_send_port2 = 23456
 
