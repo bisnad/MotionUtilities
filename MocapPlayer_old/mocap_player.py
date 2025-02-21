@@ -10,9 +10,23 @@ Setup Motion Player
 """
 
 motion_player.config = { 
-    "file_name": "data/mocap/accumulation_fullbody_take1.bvh",
+    "file_name": "data/mocap/Muriel_Take1.bvh",
     "fps": 50
     }
+
+"""
+motion_player.config = { 
+    "file_name": "../../AIToolbox/Data/Mocap/Stocos/Solos/MovementQualities_Qualisys/bvh/polytopia_fullbody_take1.bvh",
+    "fps": 50
+    }
+"""
+
+"""
+motion_player.config = { 
+    "file_name": "../../AIToolbox/Data/Mocap/Stocos/Duets/Amsterdam_2024_XSens/bvh/Sherise_Take3.bvh",
+    "fps": 50
+    }
+"""
 
 player = motion_player.MotionPlayer(motion_player.config)
 

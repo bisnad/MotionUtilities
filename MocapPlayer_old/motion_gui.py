@@ -139,7 +139,9 @@ class MotionGui(QtWidgets.QWidget):
             _w.setMaximum(255)
             _w.setValue(self.sender_ip[i])
             _w.valueChanged.connect(lambda:self.change_sender_ip(_w))  
+
             self.q_sender_ip.append(_w)
+
         self.q_sender_port = QtWidgets.QSpinBox(self)
         self.q_sender_port.setMinimum(0)
         self.q_sender_port.setMaximum(65535)
@@ -182,6 +184,8 @@ class MotionGui(QtWidgets.QWidget):
 
         self.setGeometry(50,50,512,612)
         self.setWindowTitle("Motion Autoencoder")
+
+        self.gui_needs_repaint = False
         
     def _create_edges(self):
         
@@ -207,7 +211,7 @@ class MotionGui(QtWidgets.QWidget):
         
     def load_file(self, file_name):
         
-        print("load_file: ", file_name)
+        #print("load_file: ", file_name)
         
         sender_active = self.sender.get_active()
         
@@ -216,7 +220,7 @@ class MotionGui(QtWidgets.QWidget):
 
         self.q_file_label.setText("Loading...")
         self.q_file_label.update()
-        self.q_file_label.repaint()
+        #self.q_file_label.repaint()
         
         self.player.load(file_name)
         
@@ -239,14 +243,16 @@ class MotionGui(QtWidgets.QWidget):
         self.q_start_frame_slider.setValue(start_play_frame)
         
         self.q_frame_slider.update()
-        self.q_frame_slider.repaint()
+        #self.q_frame_slider.repaint()
         self.q_start_frame_slider.update()
-        self.q_start_frame_slider.repaint()
+        #self.q_start_frame_slider.repaint()
         self.q_end_frame_slider.update()
-        self.q_end_frame_slider.repaint()
+        #self.q_end_frame_slider.repaint()
         
         if sender_active == True:
             self.sender.set_active(True)
+
+        self.gui_needs_repaint = True
         
     def start(self):
 
@@ -276,7 +282,15 @@ class MotionGui(QtWidgets.QWidget):
         
         while self.pose_thread_event.is_set() == False:
  
-            start_time = time.time()            
+            start_time = time.time()    
+
+            if self.gui_needs_repaint == True:
+                self.q_file_label.repaint()
+                self.q_frame_slider.repaint()
+                self.q_start_frame_slider.repaint()
+                self.q_end_frame_slider.repaint()
+                
+                self.gui_needs_repaint = False        
 
             self.update_gui()
             self.update_player()
@@ -355,15 +369,17 @@ class MotionGui(QtWidgets.QWidget):
         self.sender.set_active(self.sender_on)
 
     def change_sender_ip(self, widget):
-        
-        if widget == self.q_sender_ip[0]:
-            self.sender_ip[0] = widget.value()
-        elif widget == self.q_osc_ip[1]:
-            self.sender_ip[1] = widget.value()
-        elif widget == self.q_osc_ip[2]:
-            self.sender_ip[2] = widget.value()
+
+        sender_widget = super().sender()
+
+        if sender_widget == self.q_sender_ip[0]:
+            self.sender_ip[0] = sender_widget.value()
+        elif sender_widget == self.q_sender_ip[1]:
+            self.sender_ip[1] = sender_widget.value()
+        elif sender_widget == self.q_sender_ip[2]:
+            self.sender_ip[2] = sender_widget.value()
         else:
-            self.sender_ip[3] = widget.value()
+            self.sender_ip[3] = sender_widget.value()
             
         sender_active = self.sender.get_active()
         sender_ip = "{}.{}.{}.{}".format(self.sender_ip[0], self.sender_ip[1], self.sender_ip[2], self.sender_ip[3])
