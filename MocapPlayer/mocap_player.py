@@ -67,7 +67,7 @@ OSC Control
 """
 
 motion_control.config["gui"] = gui
-motion_control.config["ip"] = "127.0.0.1"
+motion_control.config["ip"] = "0.0.0.0"
 motion_control.config["port"] = 9002
 
 osc_control = motion_control.MotionControl(motion_control.config)
