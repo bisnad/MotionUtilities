@@ -21,7 +21,7 @@ OSC Settings
 """
 
 osc_receive_ip = "0.0.0.0"
-osc_receive_port = 9004
+osc_receive_port = 9007
 
 """
 OSC Receiver
