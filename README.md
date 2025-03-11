@@ -23,4 +23,3 @@ The following tools are available:
 - [XSens2Osc](XSens2Osc)
 
   A C++-based tool for converting the XSens native communication protocol to OSC
-
