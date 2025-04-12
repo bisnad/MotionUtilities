@@ -17,14 +17,21 @@ motion_player.config = {
 
 """
 motion_player.config = { 
-    "file_name": "../../AIToolbox/Data/Mocap/Stocos/Solos/MovementQualities_Qualisys/fbx/polytopia_fullbody_take1.fbx",
+    "file_name": "../../../Data/Mocap/Zed/Daniel/Solos/fbx_30hz/daniel_zed_solo1.fbx",
+    "fps": 30
+    }
+"""
+
+"""
+motion_player.config = { 
+    "file_name": "../../../Data/Mocap/Qualisys/Stocos/Solos/fbx_50hz/polytopia_fullbody_take1.fbx",
     "fps": 50
     }
 """
 
 """
 motion_player.config = { 
-    "file_name": "../../AIToolbox/Data/Mocap/Stocos/Duets/Amsterdam_2024_XSens/fbx/Sherise_Take3.fbx",
+    "file_name": "../../../Data/Mocap/Xsens/Stocos/Solos/fbx_50hz/Muriel_Embodied_Machine_variation.fbx",
     "fps": 50
     }
 """

@@ -1,6 +1,6 @@
 import numpy as np
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import Qt
 import pyqtgraph as pg
 import pyqtgraph.Vector as qVector
@@ -26,6 +26,8 @@ config = {"player": None,
           "view_line_width": 2.0
     }
 
+class PoseCanvasUpdater(QtCore.QObject):
+    request_canvas_update = QtCore.pyqtSignal()
 
 class MotionGui(QtWidgets.QWidget):
     
@@ -184,6 +186,11 @@ class MotionGui(QtWidgets.QWidget):
         self.setWindowTitle("Mocap Player")
         
         self.gui_needs_repaint = False
+
+        # Signals that can be emitted 
+        self.poseCanvasUpdater = PoseCanvasUpdater()
+        # Update graph whenever the 'request_graph_update' signal is emitted 
+        self.poseCanvasUpdater.request_canvas_update.connect(self.update_pose_plot)
         
     def _create_edges(self):
         
@@ -297,7 +304,9 @@ class MotionGui(QtWidgets.QWidget):
 
             self.update_gui()
             self.update_player()
-            self.update_seq_plot()
+            
+            self.poseCanvasUpdater.request_canvas_update.emit()  
+
             self.update_osc()
             
             end_time = time.time()   
@@ -343,7 +352,7 @@ class MotionGui(QtWidgets.QWidget):
         self.sender.send("/mocap/0/joint/rot_world", osc_values) 
 
 
-    def update_seq_plot(self):
+    def update_pose_plot(self):
         
         pose = self.player_pose_wpos
 
