@@ -16,9 +16,9 @@ osc_tracking_send_port = 23456
 osc_tracking_send_address2 = "127.0.0.1"
 osc_tracking_send_port2 = 23456
 
-osc_send_address_marker_positions = "/mocap/marker/pos"
-osc_send_address_joint_positions = "/mocap/joint/pos"
-osc_send_address_joint_rotations = "/mocap/joint/rot"
+osc_send_address_marker_positions = "/mocap/0/marker/pos"
+osc_send_address_joint_positions = "/mocap/0/joint/pos_world"
+osc_send_address_joint_rotations = "/mocap/0/joint/rot_world"
 
 subject_name = "MUR"
 

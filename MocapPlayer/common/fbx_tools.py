@@ -498,7 +498,7 @@ class FBX_Tools():
             node_pos = np.transpose(np.array(node_pos))
             node_rot_euler = np.transpose(np.array(node_rot_euler))
             
-            # print("node_pos s ", node_pos.shape)
+            #print("node_pos s ", node_pos.shape)
             #print("node_rot_euler s ", node_rot_euler.shape)
             
             pos_local.append(node_pos)

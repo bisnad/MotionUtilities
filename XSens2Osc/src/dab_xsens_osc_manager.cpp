@@ -52,7 +52,7 @@ OscSender::send()
 
 				ofxOscMessage oscMessage;
 
-				std::string address = std::string("/skel/") + std::to_string(skel_id) + properyName;
+				std::string address = std::string("/mocap/") + std::to_string(skel_id) + properyName;
 
 				oscMessage.setAddress(address);
 
