@@ -15,7 +15,6 @@ motion_player.config = {
     "file_names": [ "Jason_Take5.fbx", "Sherise_Take5.fbx"]
     }
 
-
 player = motion_player.MotionPlayer(motion_player.config)
 
 

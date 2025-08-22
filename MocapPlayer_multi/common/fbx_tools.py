@@ -503,6 +503,19 @@ class FBX_Tools():
             
             pos_local.append(node_pos)
             rot_local_euler.append(node_rot_euler)
+
+        # look for minimum number of frames in all pos and rot arrays
+        min_pos_count = min(arr.shape[0] for arr in pos_local)
+        min_rot_count = min(arr.shape[0] for arr in rot_local_euler)
+        min_frame_count = min(min_pos_count, min_rot_count)
+
+        #print("min_pos_count ", min_pos_count)
+        #print("min_rot_count ", min_rot_count)
+        #print("min_frame_count ", min_frame_count)
+
+        # crop pos and rot arrays to minimum number of frames
+        pos_local = [ arr[:min_frame_count, ...] for arr in pos_local ]
+        rot_local_euler = [ arr[:min_frame_count, ...] for arr in rot_local_euler ]
             
         pos_local = np.stack(pos_local, axis=1)
         rot_local_euler = np.stack(rot_local_euler, axis=1)

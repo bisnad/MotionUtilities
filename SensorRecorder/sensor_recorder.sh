@@ -16,7 +16,7 @@ SCRIPT_PATH=$(cd "$(dirname "$0")"; pwd -P)
 cd "$SCRIPT_PATH"
 
 # Run the Python script
-python qtm_to_osc.py
+python sensor_recorder.py
 
 # Deactivate the Conda environemnt
 conda deactivate

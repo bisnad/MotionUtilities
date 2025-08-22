@@ -4,5 +4,5 @@ set PYTHON_VERSION=3.10
 
 call %CONDA_PATH%\Scripts\activate.bat
 call conda activate %ENV_NAME%
-python mocap_recorder.py
+python sensor_recorder.py
 pause
