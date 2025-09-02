@@ -12,22 +12,29 @@ Setup Motion Player
 
 """
 motion_player.config = { 
+    "file_name": "E:/Data/mocap/Daniel/Zed/fbx/daniel_zed_various.fbx",
+    "fps": 30
+    }
+"""
+
+"""
+motion_player.config = { 
     "file_name": "data/mocap/Muriel_Take1.fbx",
     "fps": 50
     }
 """
 
-"""
 motion_player.config = { 
-    "file_name": "E:/Data/mocap/Motion2Audio/stocos/fbx_50hz/Take_2_50fps_crop.fbx",
+    "file_name": "E:/Data/mocap/Motion2Audio/stocos/fbx_50hz/Take_3_50fps_crop.fbx",
     "fps": 50
     }
-"""
 
+"""
 motion_player.config = { 
     "file_name": "../../../Data/Mocap/Zed/Daniel/Solos/fbx_30hz/daniel_zed_solo2.fbx",
     "fps": 30
     }
+"""
 
 """
 motion_player.config = { 

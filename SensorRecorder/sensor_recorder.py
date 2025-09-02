@@ -148,44 +148,153 @@ GUI
 """
 
 class BarView:
-    def __init__(self, value_count, colors, parent_view=None):
-        
-        self.value_count = value_count
+    def __init__(self, max_value_count, colors, parent_view=None):
+        self.max_value_count = max_value_count
+        self.value_count = max_value_count
+        self.colors = colors
         self.parent_view = parent_view
-        self.values = np.zeros(self.value_count)
+
+        self.bar_width = 1.0 / self.value_count
+        self.bar_centers_x = np.linspace(self.bar_width / 2, 1.0 - self.bar_width / 2, self.value_count)
+
+        # 4 vertices per rectangle (bar), creating proper faces
+        self.vertices = np.zeros((self.value_count * 4, 3), dtype=np.float32)
+        self.colors_arr = np.zeros((self.value_count * 4, 4), dtype=np.float32)
+
+        # Faces: Two triangles per rectangle (each face references 3 vertices)
+        self.faces = np.zeros((self.value_count * 2, 3), dtype=np.uint32)
         
-        bar_width = 1.0 / value_count
-        bar_centers_x = np.linspace(bar_width / 2, 1.0 - bar_width / 2, self.value_count)
+        # Generate faces for rectangles
+        for i in range(self.value_count):
+            base_face = i * 2
+            base_vert = i * 4
+            # Triangle 1: bottom-left, bottom-right, top-right
+            self.faces[base_face] = [base_vert, base_vert + 1, base_vert + 2]
+            # Triangle 2: bottom-left, top-right, top-left
+            self.faces[base_face + 1] = [base_vert, base_vert + 2, base_vert + 3]
+
+        self._initialize_geometry()
+
+        # Create mesh with explicit faces
+        self.mesh = visuals.Mesh(
+            vertices=self.vertices,
+            faces=self.faces,
+            vertex_colors=self.colors_arr,
+            mode='triangles',
+            parent=self.parent_view
+        )
+
+    def _initialize_geometry(self):
+        """Initialize vertex positions and colors for all bars"""
+        half_width = self.bar_width / 2
+
+        for i, center_x in enumerate(self.bar_centers_x):
+            base_index = i * 4
+            bottom_y = 0.0
+            top_y = 0.01
+
+            # Rectangle corners (4 vertices per bar)
+            bl = (center_x - half_width, bottom_y, 0)  # bottom-left
+            br = (center_x + half_width, bottom_y, 0)  # bottom-right
+            tr = (center_x + half_width, top_y, 0)     # top-right
+            tl = (center_x - half_width, top_y, 0)     # top-left
+
+            self.vertices[base_index] = bl
+            self.vertices[base_index + 1] = br
+            self.vertices[base_index + 2] = tr
+            self.vertices[base_index + 3] = tl
+
+            # Set colors for all 4 vertices of this bar
+            color = self.colors[i] if i < len(self.colors) else (1, 1, 1, 0.8)
+            self.colors_arr[base_index:base_index+4] = color
+
+    def resetValueCount(self, value_count):
+        """Optimize: only recalculate if count actually changed"""
+        if value_count == self.value_count:
+            return
+
+        self.value_count = value_count
+        self.bar_width = 0.9 / self.value_count
+        self.bar_centers_x = np.linspace(self.bar_width / 2, 1.0 - self.bar_width / 2, self.value_count)
         
-        self.bars = [ visuals.Rectangle(center=(bar_centers_x[i], 0.0), width=bar_width, height=0.01, color=colors[i]) for i in range(self.value_count) ]
-        self.compound = visuals.Compound(self.bars, parent=self.parent_view)
+        # Recreate faces for new bar count
+        self.faces = np.zeros((self.value_count * 2, 3), dtype=np.uint32)
+        for i in range(self.value_count):
+            base_face = i * 2
+            base_vert = i * 4
+            self.faces[base_face] = [base_vert, base_vert + 1, base_vert + 2]
+            self.faces[base_face + 1] = [base_vert, base_vert + 2, base_vert + 3]
         
+        self._initialize_geometry()
+
     def update(self, values):
 
-        for bar, value in zip(self.bars, values):
-            bar.center = (bar.center[0], value / 2)
-            bar.height = abs(value) + 0.0001
+        """Batch update all bar heights"""
+        value_count = min(len(values), self.max_value_count)
 
+        if value_count != self.value_count:
+            self.resetValueCount(value_count)
+
+        half_width = self.bar_width / 2
+
+        # Update vertex positions for all bars
+        for i in range(self.value_count):
+            base_index = i * 4
+            center_x = self.bar_centers_x[i]
+            value = values[i] if i < len(values) else 0
+
+            #bottom_y = 0
+            bottom_y = min(value, -0.0001)   # Ensure minimum height
+            #top_y = max(abs(value), 0.0001)  # Ensure minimum height
+            top_y = max(value, 0.0001)  # Ensure minimum height
+
+            # Rectangle corners
+            bl = (center_x - half_width, bottom_y, 0)
+            br = (center_x + half_width, bottom_y, 0)
+            tr = (center_x + half_width, top_y, 0)
+            tl = (center_x - half_width, top_y, 0)
+
+            self.vertices[base_index] = bl
+            self.vertices[base_index + 1] = br
+            self.vertices[base_index + 2] = tr
+            self.vertices[base_index + 3] = tl
+
+        # Single GPU update for all bars
+        self.mesh.set_data(vertices=self.vertices, faces=self.faces, vertex_colors=self.colors_arr)
 
 class TimePlotView:
     def __init__(self, value_count, time_count, colors, parent_view=None):
-        
         self.value_count = value_count
         self.time_count = time_count
+        self.colors = colors
         self.parent_view = parent_view
-        self.values = np.random.randn(self.time_count, self.value_count)
+
+        # Store values
+        self.values = np.zeros((self.time_count, self.value_count))
+
+        # Time axis for all points
         self.time_line = np.linspace(0.0, 1.0, self.time_count)
-        
-        self.plots = [ visuals.Line(np.stack([self.time_line, self.values[:, i]], axis=1), color=colors[i]) for i in range(self.value_count)]
-        self.compound = visuals.Compound(self.plots, parent=self.parent_view)
+
+        # Preallocate all line visuals (one per trace, or batch all into one if desired)
+        self.lines = []
+        for i in range(self.value_count):
+            color = colors[i]
+            line = visuals.Line(pos=np.zeros((self.time_count, 2)),
+                                color=color,
+                                width=2,
+                                method='gl',
+                                parent=self.parent_view)
+            self.lines.append(line)
 
     def update(self, values):
-        
         self.values = np.roll(self.values, -1, axis=0)
         self.values[-1] = values
-        
+
         for i in range(self.value_count):
-            self.plots[i].set_data(np.stack([self.time_line, self.values[:, i]], axis=1))
+            # Update all points for the i-th trace
+            pos = np.column_stack((self.time_line, self.values[:, i]))
+            self.lines[i].set_data(pos=pos)
+
 
 class SensorView:
     def __init__(self, title, value_dim, value_range, time_steps, colors):
@@ -337,10 +446,9 @@ if __name__ == "__main__":
     canvas.add_sensor_view("/gyroscope", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
     """
 
-    """
+
     #Example 4: visualise 3 accelerometer values for a single IMU sensor, timeseries contain 100 valuees and are coloured red, green, and blue
     canvas.add_sensor_view("/accelerometer", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
-    """
 
     win = MainWindow(canvas)
 
