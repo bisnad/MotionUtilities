@@ -10,20 +10,6 @@ import motion_gui
 Setup Motion Player
 """
 
-"""
-motion_player.config = { 
-    "file_name": "C:/Users/dbisig/Desktop/Canal_14-08-2023-001_Muriel_Fluid_1.fbx",
-    "fps": 50
-    }
-"""
-
-"""
-motion_player.config = { 
-    "file_name": "C:/Users/dbisig/Desktop/Daniel_Untitled_Take1_15.12.fbx",
-    "fps": 50
-    }
-"""
-
 motion_player.config = { 
     "file_name": "data/mocap/Muriel_Take1.fbx",
     "fps": 50
