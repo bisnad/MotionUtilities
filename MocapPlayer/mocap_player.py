@@ -12,17 +12,9 @@ Setup Motion Player
 
 
 motion_player.config = { 
-    "file_name": "E:/Data/mocap/Daniel/Zed/fbx/daniel_zed_solo1.fbx",
-    "fps": 30
-    }
-
-
-"""
-motion_player.config = { 
     "file_name": "data/mocap/Muriel_Take1.fbx",
     "fps": 50
     }
-"""
 
 """
 motion_player.config = { 
