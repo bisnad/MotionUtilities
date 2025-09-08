@@ -10,12 +10,12 @@ import motion_gui
 Setup Motion Player
 """
 
-"""
+
 motion_player.config = { 
-    "file_name": "E:/Data/mocap/Daniel/Zed/fbx/daniel_zed_various.fbx",
+    "file_name": "E:/Data/mocap/Daniel/Zed/fbx/daniel_zed_solo1.fbx",
     "fps": 30
     }
-"""
+
 
 """
 motion_player.config = { 
@@ -24,10 +24,12 @@ motion_player.config = {
     }
 """
 
+"""
 motion_player.config = { 
     "file_name": "E:/Data/mocap/Motion2Audio/stocos/fbx_50hz/Take_3_50fps_crop.fbx",
     "fps": 50
     }
+"""
 
 """
 motion_player.config = { 
