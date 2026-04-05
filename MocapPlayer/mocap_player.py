@@ -10,15 +10,35 @@ import motion_gui
 Setup Motion Player
 """
 
-
+"""
 motion_player.config = { 
     "file_name": "data/mocap/Muriel_Take1.fbx",
+    "fps": 50
+    }
+"""
+
+"""
+motion_player.config = { 
+    "file_name": "E:/Data/mocap/Diane/Solos/ZHdK_10.10.2025/fbx_50hz/trial-002.fbx",
+    "fps": 50
+    }
+"""
+
+motion_player.config = { 
+    "file_name": "E:/Data/mocap/Eleni/Solos/ZHdK_04.12.2025/fbx_50hz/Eline_Session-002.fbx",
     "fps": 50
     }
 
 """
 motion_player.config = { 
-    "file_name": "E:/Data/mocap/Motion2Audio/stocos/fbx_50hz/Take_3_50fps_crop.fbx",
+    "file_name": "E:/Medien_Demo/Data/Medien_Tanz/07.12.2025/Waldspaziergang_Final_mb_50hz.fbx",
+    "fps": 50
+    }
+"""
+
+"""
+motion_player.config = { 
+    "file_name": "../../../Data/Mocap/Captury/MotionBank/Solos/bvh_50hz/amber_movement_qualities.bvh",
     "fps": 50
     }
 """

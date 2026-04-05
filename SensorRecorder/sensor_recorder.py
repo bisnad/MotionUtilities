@@ -446,9 +446,10 @@ if __name__ == "__main__":
     canvas.add_sensor_view("/gyroscope", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
     """
 
-
-    #Example 4: visualise 3 accelerometer values for a single IMU sensor, timeseries contain 100 valuees and are coloured red, green, and blue
+    """
+    Example 4: visualise 3 accelerometer values for a single IMU sensor, timeseries contain 100 valuees and are coloured red, green, and blue
     canvas.add_sensor_view("/accelerometer", 3, (-50.0, 50.0), 100, ((1.0, 0.0, 0.0, 1.0), (0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 1.0, 1.0)))
+    """
 
     win = MainWindow(canvas)
 
