@@ -38,19 +38,19 @@ motion_player.config = {
     }
 """
 
-"""
+
 motion_player.config = { 
     "file_name": "../../../Data/Mocap/Captury/MotionBank/Solos/bvh_50hz/amber_movement_qualities.bvh",
     "fps": 50
     }
+
+
 """
-
-
 motion_player.config = { 
     "file_name": "../../../Data/Mocap/Zed/Daniel/Solos/fbx_30hz/daniel_zed_solo2.fbx",
     "fps": 30
     }
-
+"""
 
 """
 motion_player.config = { 
@@ -62,6 +62,13 @@ motion_player.config = {
 """
 motion_player.config = { 
     "file_name": "../../../Data/Mocap/Xsens/Stocos/Solos/fbx_50hz/Muriel_Embodied_Machine_variation.fbx",
+    "fps": 50
+    }
+"""
+
+"""
+motion_player.config = { 
+    "file_name": "E:/Data/mocap/stocos/Duets/Amsterdam_2024/fbx_50hz/Jason_Muriel_Take1.fbx",
     "fps": 50
     }
 """
