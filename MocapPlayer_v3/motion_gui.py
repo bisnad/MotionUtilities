@@ -19,6 +19,7 @@ config = {"player": None,
           "view_ele": 90,
           "view_azi": -90,
           "view_dist": 250,
+          "view_scale": 1.0,
           "view_line_width": 3.0,
           "view_joint_size": 9.0
     }
@@ -27,11 +28,24 @@ class PoseCanvasUpdater(QtCore.QObject):
     request_canvas_update = QtCore.pyqtSignal()
 
 class CustomGLViewWidget(gl.GLViewWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, default_dist=250, default_azi=-90, default_ele=90, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Important: avoid Euler pole / roll weirdness
         self.opts['rotationMethod'] = 'quaternion'
+        
+        self.default_dist = default_dist
+        self.default_azi = default_azi
+        self.default_ele = default_ele
+
+    def mouseDoubleClickEvent(self, ev):
+        if ev.button() == QtCore.Qt.LeftButton:
+            self.setCameraParams(
+                distance=self.default_dist,
+                azimuth=self.default_azi,
+                elevation=self.default_ele
+            )
+        super().mouseDoubleClickEvent(ev)
 
     def mouseMoveEvent(self, ev):
         lpos = ev.position() if hasattr(ev, 'position') else ev.localPos()
@@ -85,10 +99,15 @@ class MotionGui(QtWidgets.QWidget):
         self.view_ele = config["view_ele"]
         self.view_azi = config["view_azi"]
         self.view_dist = config["view_dist"]
+        self.view_scale = config["view_scale"]
         self.view_line_width = config["view_line_width"]
         self.view_joint_size = config["view_joint_size"]
         
-        self.pose_canvas = CustomGLViewWidget()
+        self.pose_canvas = CustomGLViewWidget(
+            default_dist=self.view_dist,
+            default_azi=self.view_azi,
+            default_ele=self.view_ele
+        )
         self.pose_canvas.setCameraParams(center=self.view_center)
         self.pose_canvas.setCameraParams(distance=self.view_dist)
         self.pose_canvas.setCameraParams(azimuth=self.view_azi)
@@ -113,11 +132,18 @@ class MotionGui(QtWidgets.QWidget):
         self.q_fps.setValue(fps)
         self.q_fps.valueChanged.connect(self.change_fps)  
         
+        # Skeleton Selector
+        self.q_skeleton_selector = QtWidgets.QComboBox(self)
+        self.q_skeleton_selector.addItem("None")
+        
         self.q_button_grid = QtWidgets.QGridLayout()
-        self.q_button_grid.addWidget(self.q_load_buttom,0,0)
-        self.q_button_grid.addWidget(self.q_start_buttom,0,1)
-        self.q_button_grid.addWidget(self.q_stop_buttom,0,2)
-        self.q_button_grid.addWidget(self.q_fps,0,3)
+        self.q_button_grid.addWidget(self.q_load_buttom, 0, 0)
+        self.q_button_grid.addWidget(self.q_start_buttom, 0, 1)
+        self.q_button_grid.addWidget(self.q_stop_buttom, 0, 2)
+        self.q_button_grid.addWidget(QtWidgets.QLabel("FPS:"), 0, 3, alignment=Qt.AlignRight)
+        self.q_button_grid.addWidget(self.q_fps, 0, 4)
+        self.q_button_grid.addWidget(QtWidgets.QLabel("Follow:"), 0, 5, alignment=Qt.AlignRight)
+        self.q_button_grid.addWidget(self.q_skeleton_selector, 0, 6)
         
         # We will use sliders with a 0-1000 range to represent percentage of max play time
         self.q_time_slider = QtWidgets.QSlider(Qt.Horizontal, self)
@@ -270,17 +296,52 @@ class MotionGui(QtWidgets.QWidget):
     def update_gui_and_canvas(self):
         """Called by the main Qt thread to update drawing and UI"""
         poses = self.player.get_frame()
-        active_ids = set()
         
+        # Pre-process active IDs to dynamically update the dropdown
+        active_ids = {pose["id"] for pose in poses}
+        
+        if not hasattr(self, 'known_skeleton_ids'):
+            self.known_skeleton_ids = set()
+            
+        if active_ids != self.known_skeleton_ids:
+            current_selection = self.q_skeleton_selector.currentText()
+            self.q_skeleton_selector.blockSignals(True)
+            self.q_skeleton_selector.clear()
+            self.q_skeleton_selector.addItem("None")
+            for sid in sorted(list(active_ids)):
+                self.q_skeleton_selector.addItem(str(sid))
+                
+            idx = self.q_skeleton_selector.findText(current_selection)
+            if idx >= 0:
+                self.q_skeleton_selector.setCurrentIndex(idx)
+                
+            self.known_skeleton_ids = active_ids
+            self.q_skeleton_selector.blockSignals(False)
+            
+        selected_text = self.q_skeleton_selector.currentText()
+        target_center = qVector(0, 0, 0)
+        target_found = False
+
         # Ensure the points tracking dictionary exists dynamically
         if not hasattr(self, 'skeleton_points'):
             self.skeleton_points = {}
             
         for pose in poses:
             skel_id = pose["id"]
-            active_ids.add(skel_id)
             skeleton_hierarchy = pose["skeleton"]
-            pos_world = pose["pos_world"]
+            pos_world = pose["pos_world"] * self.view_scale
+            
+            # --- Calculating Center Point tracking (Root Joint) ---
+            if str(skel_id) == selected_text and len(pos_world) > 0:
+                # Identify the root joint (the one with parent index -1)
+                parents_list = list(skeleton_hierarchy["parents"])
+                
+                # Default to index 0 if for some reason -1 is missing from the hierarchy
+                root_idx = parents_list.index(-1) if -1 in parents_list else 0 
+                
+                root_pos = pos_world[root_idx]
+                target_center = qVector(root_pos[0], root_pos[1], root_pos[2])
+                target_found = True
             
             # --- Rendering Lines (Bones) ---
             lines = []
@@ -301,7 +362,6 @@ class MotionGui(QtWidgets.QWidget):
             # --- Rendering Points (Joints) ---
             if len(pos_world) > 0:
                 if skel_id not in self.skeleton_points:
-                    # size=6.0 pixels provides a nice contrast against the line width
                     skel_pts = gl.GLScatterPlotItem(pos=pos_world, color=(1.0, 1.0, 1.0, 0.5), size=self.view_joint_size)
                     self.pose_canvas.addItem(skel_pts)
                     self.skeleton_points[skel_id] = skel_pts
@@ -311,17 +371,30 @@ class MotionGui(QtWidgets.QWidget):
             # --- OSC Sending (Original Array Format) ---
             if self.sender and getattr(self.sender, 'active', False):
                 
-                # Flatten the arrays
                 osc_pos_local = np.reshape(pose["pos_local"], (-1)).tolist()
                 osc_rot_local = np.reshape(pose["rot_local"], (-1)).tolist()
                 osc_pos_world = np.reshape(pose["pos_world"], (-1)).tolist()
                 osc_rot_world = np.reshape(pose["rot_world"], (-1)).tolist()
                 
-                # Send the flattened arrays to the sender
                 self.sender.send(f"/mocap/{skel_id}/joint/pos_local", osc_pos_local) 
                 self.sender.send(f"/mocap/{skel_id}/joint/rot_local", osc_rot_local) 
                 self.sender.send(f"/mocap/{skel_id}/joint/pos_world", osc_pos_world) 
                 self.sender.send(f"/mocap/{skel_id}/joint/rot_world", osc_rot_world) 
+
+        # --- View Center Updating (Fixed for manual panning) ---
+        if not hasattr(self, 'last_selected_text'):
+            self.last_selected_text = "None"
+            self.pose_canvas.setCameraParams(center=qVector(0, 0, 0))
+
+        if selected_text != "None" and target_found:
+            # Constantly update tracking for the selected skeleton
+            self.pose_canvas.setCameraParams(center=target_center)
+        elif selected_text == "None" and self.last_selected_text != "None":
+            # Only force back to the origin exactly when switching to "None"
+            # This allows the user to manually control-drag afterwards
+            self.pose_canvas.setCameraParams(center=qVector(0, 0, 0))
+
+        self.last_selected_text = selected_text
 
         # Cleanup disappeared skeletons (Bones)
         for skel_id in list(self.skeleton_items.keys()):

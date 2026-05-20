@@ -10,47 +10,26 @@ import motion_gui
 Setup Motion Player
 """
 
-"""
+
 motion_player.config = { 
     "file_name": "data/mocap/Muriel_Take1.fbx",
     "fps": 50
     }
-"""
-
-"""
-motion_player.config = { 
-    "file_name": "E:/Data/mocap/Diane/Solos/ZHdK_10.10.2025/fbx_50hz/trial-002.fbx",
-    "fps": 50
-    }
-"""
-
-"""
-motion_player.config = { 
-    "file_name": "E:/Data/mocap/Eleni/Solos/ZHdK_04.12.2025/fbx_50hz/Eline_Session-002.fbx",
-    "fps": 50
-    }
-"""
-
-"""
-motion_player.config = { 
-    "file_name": "E:/Medien_Demo/Data/Medien_Tanz/07.12.2025/Waldspaziergang_Final_mb_50hz.fbx",
-    "fps": 50
-    }
-"""
 
 
+"""
 motion_player.config = { 
     "file_name": "../../../Data/Mocap/Captury/MotionBank/Solos/bvh_50hz/amber_movement_qualities.bvh",
     "fps": 50
     }
-
+"""
 
 """
 motion_player.config = { 
     "file_name": "../../../Data/Mocap/Zed/Daniel/Solos/fbx_30hz/daniel_zed_solo2.fbx",
     "fps": 30
     }
-"""
+""
 
 """
 motion_player.config = { 
@@ -64,12 +43,35 @@ motion_player.config = {
     "file_name": "../../../Data/Mocap/Xsens/Stocos/Solos/fbx_50hz/Muriel_Embodied_Machine_variation.fbx",
     "fps": 50
     }
+
 """
 
 """
 motion_player.config = { 
-    "file_name": "E:/Data/mocap/stocos/Duets/Amsterdam_2024/fbx_50hz/Jason_Muriel_Take1.fbx",
+    "file_name": "../../../Data/Mocap/Xsens/Stocos/Duets/fbx_50hz/Jason_Take3.fbx",
     "fps": 50
+    }
+"""
+
+"""
+motion_player.config = { 
+    "file_name": "../../../Data/Mocap/Xsens/Stocos/Duets/fbx_50hz/Jason_Sherise_Take5.fbx",
+    "fps": 50
+    }
+"""
+
+"""
+motion_player.config = { 
+    "file_name": "../../../Data/Mocap/Pose3D/Stocos/Solos/Stocos_Pose3D_BlumenBaile.pkl",
+    "skel_parents": [-1, 0, 1, 2, 0, 4, 5, 0, 7, 8, 9, 8, 11, 12, 8, 14, 15 ],
+    "fps": 30
+    }
+"""
+
+"""
+motion_player.config = { 
+    "file_name": "../../../Data/Mocap/Pose3D/Stocos/Solos/Stocos_DoubleBind_MediaPipe.fbx",
+    "fps": 30
     }
 """
 
@@ -97,6 +99,8 @@ from pathlib import Path
 
 motion_gui.config["player"] = player
 motion_gui.config["sender"] = osc_sender
+motion_gui.config["view_scale"] = 1.0
+#motion_gui.config["view_scale"] = 100.0
 
 app = QtWidgets.QApplication(sys.argv)
 gui = motion_gui.MotionGui(motion_gui.config)

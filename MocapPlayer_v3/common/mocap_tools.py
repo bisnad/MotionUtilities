@@ -83,6 +83,205 @@ class Mocap_Tools:
     
         return all_motion_data
     
+    def pkl_to_mocap(self, pkl_data, skeleton_parents=None):
+        import numpy as np
+        import transforms3d as t3d
+        from scipy.spatial.transform import Rotation
+        
+        def get_shortest_quat(v1, v2):
+            """Calculates the shortest-arc quaternion to rotate vector v1 to v2 without twisting."""
+            v1_norm = np.linalg.norm(v1)
+            v2_norm = np.linalg.norm(v2)
+            if v1_norm < 1e-6 or v2_norm < 1e-6:
+                return np.array([1.0, 0.0, 0.0, 0.0])
+                
+            v1 = v1 / v1_norm
+            v2 = v2 / v2_norm
+            dot = np.clip(np.dot(v1, v2), -1.0, 1.0)
+            
+            if dot > 0.999999:
+                return np.array([1.0, 0.0, 0.0, 0.0])
+            elif dot < -0.999999:
+                ortho = np.cross(np.array([1.0, 0.0, 0.0]), v1)
+                if np.linalg.norm(ortho) < 1e-6:
+                    ortho = np.cross(np.array([0.0, 1.0, 0.0]), v1)
+                ortho = ortho / np.linalg.norm(ortho)
+                return np.array([0.0, ortho[0], ortho[1], ortho[2]])
+            
+            cross = np.cross(v1, v2)
+            q = np.array([1.0 + dot, cross[0], cross[1], cross[2]])
+            return q / np.linalg.norm(q)
+
+        sensor_ids = pkl_data["sensor_ids"]
+        sensor_values = pkl_data["sensor_values"]
+        time_stamps = pkl_data["time_stamps"]
+        
+        skel_frames = {}
+        for s_id, s_val, t in zip(sensor_ids, sensor_values, time_stamps):
+            parts = s_id.strip('/').split('/')
+            if len(parts) >= 4 and parts[0] == "mocap" and parts[2] == "joint":
+                skel_idx = int(parts[1])
+                attr = parts[3]
+                if skel_idx not in skel_frames: skel_frames[skel_idx] = {}
+                if t not in skel_frames[skel_idx]: skel_frames[skel_idx][t] = {}
+                skel_frames[skel_idx][t][attr] = s_val
+                
+        all_mocap_data = []
+        
+        for skel_idx, frames_dict in skel_frames.items():
+            times = sorted(list(frames_dict.keys()))
+            frame_count = len(times)
+            frame_rate = 1.0 / np.mean(np.diff(times)) if frame_count > 1 else 30.0 
+                
+            if skeleton_parents is not None:
+                num_joints = len(skeleton_parents)
+            else:
+                num_joints = 0
+                for t in times:
+                    if "pos_world" in frames_dict[t]:
+                        num_joints = len(frames_dict[t]["pos_world"]) // 3
+                        break
+            if num_joints == 0: continue
+                
+            pos_world = np.zeros((frame_count, num_joints, 3))
+            pos_local = np.zeros((frame_count, num_joints, 3))
+            rot_world = np.zeros((frame_count, num_joints, 4))
+            rot_local = np.zeros((frame_count, num_joints, 4))
+            
+            rot_world[:, :, 0] = 1.0 
+            rot_local[:, :, 0] = 1.0
+            has_rot = False
+            
+            for f_idx, t in enumerate(times):
+                frame_data = frames_dict[t]
+                if "pos_world" in frame_data and len(frame_data["pos_world"]) > 0:
+                    pos_world[f_idx] = np.array(frame_data["pos_world"]).reshape(num_joints, 3)
+                elif f_idx > 0: pos_world[f_idx] = pos_world[f_idx-1]
+                    
+                if "rot_world" in frame_data and len(frame_data["rot_world"]) > 0:
+                    rot_world[f_idx] = np.array(frame_data["rot_world"]).reshape(num_joints, 4)
+                    has_rot = True
+                elif f_idx > 0: rot_world[f_idx] = rot_world[f_idx-1]
+                    
+            parents = skeleton_parents if skeleton_parents is not None else [-1] + [i-1 for i in range(1, num_joints)]
+            children = [[] for _ in range(num_joints)]
+            for i, p in enumerate(parents):
+                if p != -1: children[p].append(i)
+                
+            # Build topological order so parent rotations are always solved before children
+            topo_order = []
+            queue = [i for i, p in enumerate(parents) if p == -1]
+            while queue:
+                curr = queue.pop(0)
+                topo_order.append(curr)
+                queue.extend(children[curr])
+            
+            offsets = np.zeros((num_joints, 3))
+            
+            if has_rot:
+                # --- FULL MOCAP DATA (Pass-through) ---
+                for i in range(num_joints):
+                    p = parents[i]
+                    if p == -1:
+                        pos_local[:, i, :] = pos_world[:, i, :]
+                        if frame_count > 0:
+                            offsets[i] = pos_world[0, i].copy()
+                            offsets[i, [0, 2]] = 0.0
+                    else:
+                        for f in range(frame_count):
+                            diff_world = pos_world[f, i] - pos_world[f, p]
+                            q_parent_inv = t3d.quaternions.qconjugate(rot_world[f, p])
+                            pos_local[f, i] = t3d.quaternions.rotate_vector(diff_world, q_parent_inv)
+                        if frame_count > 0: offsets[i] = np.mean(pos_local[:, i, :], axis=0)
+                            
+            else:
+                # --- 3D POSITION ONLY (Topological Swing-Twist IK) ---
+                if frame_count > 0:
+                    # 1. Establish Rigid Rest Offsets
+                    for i in range(num_joints):
+                        p = parents[i]
+                        if p == -1:
+                            offsets[i] = pos_world[0, i].copy()
+                            offsets[i, [0, 2]] = 0.0
+                        else:
+                            offsets[i] = pos_world[0, i] - pos_world[0, p]
+
+                    # 2. Compute Topologically Sorted IK Rotations
+                    for f in range(frame_count):
+                        for i in topo_order:
+                            p = parents[i]
+                            child_list = children[i]
+                            
+                            if p == -1: # ROOT JOINT
+                                if len(child_list) >= 2:
+                                    # Stable Procrustes constraint to anchor the core body
+                                    v_rest = np.array([offsets[c] for c in child_list])
+                                    v_curr = np.array([pos_world[f, c] - pos_world[f, i] for c in child_list])
+                                    valid_idx = np.linalg.norm(v_rest, axis=1) > 1e-6
+                                    if sum(valid_idx) >= 2:
+                                        rot, _ = Rotation.align_vectors(v_curr[valid_idx], v_rest[valid_idx])
+                                        q_scipy = rot.as_quat()
+                                        rot_world[f, i] = np.array([q_scipy[3], q_scipy[0], q_scipy[1], q_scipy[2]])
+                                    else:
+                                        rot_world[f, i] = np.array([1.0, 0.0, 0.0, 0.0])
+                                elif len(child_list) == 1:
+                                    v_rest = offsets[child_list[0]]
+                                    v_curr = pos_world[f, child_list[0]] - pos_world[f, i]
+                                    rot_world[f, i] = get_shortest_quat(v_rest, v_curr)
+                                else:
+                                    rot_world[f, i] = np.array([1.0, 0.0, 0.0, 0.0])
+                                    
+                            else: # CHILD JOINTS (Limbs/Spine)
+                                if len(child_list) == 0:
+                                    rot_world[f, i] = rot_world[f, p]
+                                else:
+                                    # SWING LOGIC: Inherit parent twist, compute minimal swing to reach target
+                                    c = child_list[0]
+                                    v_rest = offsets[c]
+                                    v_curr = pos_world[f, c] - pos_world[f, i]
+                                    
+                                    # Where parent rotation naturally places the bone
+                                    v_expected = t3d.quaternions.rotate_vector(v_rest, rot_world[f, p])
+                                    
+                                    # Swing quaternion to snap exactly to tracked AI data without twisting
+                                    q_swing = get_shortest_quat(v_expected, v_curr)
+                                    rot_world[f, i] = t3d.quaternions.qmult(q_swing, rot_world[f, p])
+
+                    # 3. Derive Standardized Local Data for FK Rendering
+                    for f in range(frame_count):
+                        for i in range(num_joints):
+                            p = parents[i]
+                            if p == -1:
+                                rot_local[f, i] = rot_world[f, i]
+                                pos_local[f, i] = pos_world[f, i]
+                            else:
+                                q_p_inv = t3d.quaternions.qconjugate(rot_world[f, p])
+                                rot_local[f, i] = t3d.quaternions.qmult(q_p_inv, rot_world[f, i])
+                                pos_local[f, i] = offsets[i]
+
+            skeleton = {
+                "root": f"joint_{0}" if num_joints > 0 else "root",
+                "joints": [f"joint_{i}" for i in range(num_joints)],
+                "parents": parents,
+                "children": children,
+                "offsets": offsets
+            }
+            
+            all_mocap_data.append({
+                "frame_rate": frame_rate,
+                "rot_sequence": [0, 1, 2],
+                "skeleton": skeleton,
+                "motion": {
+                    "times": {j: times for j in skeleton["joints"]},
+                    "pos_world": pos_world,
+                    "pos_local": pos_local,
+                    "rot_world": rot_world,
+                    "rot_local": rot_local
+                }
+            })
+            
+        return all_mocap_data
+
     def mocap_to_bvh(self, mocap_data):
         
         bvh_data = bvh.BVH_Data()

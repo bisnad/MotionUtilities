@@ -365,7 +365,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, canvas, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.setWindowTitle("Mocap Recorder")
+        self.setWindowTitle("Motion Recorder")
         
         # main layout
         central_widget = QtWidgets.QWidget()

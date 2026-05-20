@@ -3,28 +3,34 @@ import pathlib
 
 from common import bvh_tools as bvh
 from common import fbx_tools as fbx
+from common import pkl_tools as pkt
 from common import mocap_tools as mocap
 
 config = { 
-    "file_name": ""
+    "file_name": "",
+    "fps": 50
     }
 
 class MotionPlayer():
     def __init__(self, config):
         self.file_name = config["file_name"]
+        self.base_fps = config["fps"]
+
         self.skeletons_data = [] 
         
-        self.base_fps = 50.0
-        self.fps = 50.0 
+        self.fps = self.base_fps 
         self.play_time = 0.0
         self.start_time = 0.0
         self.end_time = 0.0
         self.max_time = 0.0
         
         if self.file_name:
-            self.load(self.file_name)
+            if "skel_parents" in config:
+                self.load(self.file_name, config["skel_parents"])
+            else:
+                self.load(self.file_name)
         
-    def load(self, file_name):
+    def load(self, file_name, skel_parents = None):
         self.file_name = file_name
         file_suffix = pathlib.Path(file_name).suffix.lower()
 
@@ -32,6 +38,8 @@ class MotionPlayer():
             raw_data = self.load_bvh(file_name)
         elif file_suffix == ".fbx":
             raw_data = self.load_fbx(file_name)
+        elif file_suffix == ".pkl":
+            raw_data = self.load_pkl(file_name, skel_parents)
         else:
             return
             
@@ -95,12 +103,28 @@ class MotionPlayer():
         mocap_tools_inst = mocap.Mocap_Tools()
         
         fbx_data = fbx_tools_inst.load(file_name)
-        all_mocap_data = mocap_tools_inst.fbx_to_mocap(fbx_data)
+        mocap_data = mocap_tools_inst.fbx_to_mocap(fbx_data)
         
-        for skel_data in all_mocap_data:
+        for skel_data in mocap_data:
             skel_data["motion"]["rot_local"] = mocap_tools_inst.euler_to_quat(skel_data["motion"]["rot_local_euler"], skel_data["rot_sequence"])
         
-        return all_mocap_data
+        return mocap_data
+
+    def load_pkl(self, file_name, skel_parents):
+        pkl_tools_inst = pkt.PKL_Tools()
+        mocap_tools_inst = mocap.Mocap_Tools()
+        
+        # 1. Load the raw OSC dictionary
+        osc_data = pkl_tools_inst.load(file_name)
+        
+        # 2. Convert to the standard mocap structure
+        mocap_data = mocap_tools_inst.pkl_to_mocap(osc_data, skeleton_parents=skel_parents)
+        
+        # Ensure it returns a list of skeletons
+        if not isinstance(mocap_data, list):
+            mocap_data = [mocap_data]
+            
+        return mocap_data
 
     def get_fps(self):
         return self.fps
