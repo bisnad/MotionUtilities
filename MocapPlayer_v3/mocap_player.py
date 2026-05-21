@@ -29,7 +29,7 @@ motion_player.config = {
     "file_name": "../../../Data/Mocap/Zed/Daniel/Solos/fbx_30hz/daniel_zed_solo2.fbx",
     "fps": 30
     }
-""
+"""
 
 """
 motion_player.config = { 

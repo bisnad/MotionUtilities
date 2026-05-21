@@ -125,6 +125,9 @@ class MotionGui(QtWidgets.QWidget):
         
         self.q_stop_buttom = QtWidgets.QPushButton("stop", self)
         self.q_stop_buttom.clicked.connect(self.stop)  
+
+        self.q_exit_button = QtWidgets.QPushButton("Exit", self)
+        self.q_exit_button.clicked.connect(self.exit_application)
         
         self.q_fps = QtWidgets.QSpinBox(self)
         self.q_fps.setMinimum(1)
@@ -140,10 +143,11 @@ class MotionGui(QtWidgets.QWidget):
         self.q_button_grid.addWidget(self.q_load_buttom, 0, 0)
         self.q_button_grid.addWidget(self.q_start_buttom, 0, 1)
         self.q_button_grid.addWidget(self.q_stop_buttom, 0, 2)
-        self.q_button_grid.addWidget(QtWidgets.QLabel("FPS:"), 0, 3, alignment=Qt.AlignRight)
-        self.q_button_grid.addWidget(self.q_fps, 0, 4)
-        self.q_button_grid.addWidget(QtWidgets.QLabel("Follow:"), 0, 5, alignment=Qt.AlignRight)
-        self.q_button_grid.addWidget(self.q_skeleton_selector, 0, 6)
+        self.q_button_grid.addWidget(self.q_exit_button, 0, 3)
+        self.q_button_grid.addWidget(QtWidgets.QLabel("FPS:"), 0, 4, alignment=Qt.AlignRight)
+        self.q_button_grid.addWidget(self.q_fps, 0, 5)
+        self.q_button_grid.addWidget(QtWidgets.QLabel("Follow:"), 0, 6, alignment=Qt.AlignRight)
+        self.q_button_grid.addWidget(self.q_skeleton_selector, 0, 7)
         
         # We will use sliders with a 0-1000 range to represent percentage of max play time
         self.q_time_slider = QtWidgets.QSlider(Qt.Horizontal, self)
@@ -272,6 +276,15 @@ class MotionGui(QtWidgets.QWidget):
             return
         self.pose_thread_event.set()
         self.pose_thread.join()
+
+    def exit_application(self):
+        """Cleanly stops the thread and closes the application."""
+        # Stop the prediction thread if it is currently running
+        if hasattr(self, 'pose_thread_event') and not self.pose_thread_event.is_set():
+            self.stop()
+            
+        # Close the PyQt window (triggers app.lastWindowClosed in the main script)
+        self.close()
         
     def change_fps(self, fps):
         fps = int(fps)
