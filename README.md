@@ -8,10 +8,6 @@ The following tools are available:
 
   A python-based tool for playing recorded motion capture data and sending joint data via OSC
 
-- [MocapPlayer_old](MocapPlayer_old) 
-
-  A previous version of the MocapPlayer, that is needed in combination with some older tools
-
 - [MocapRecorder](MocapRecorder) 
 
   A python-based tool to record time-based sensor data
