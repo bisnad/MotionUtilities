@@ -1,125 +1,84 @@
-'''
-BVH Parser Class
-
-By Omid Alemi
-Created: June 12, 2017
-Modified: 
-Added functions to write BVH data to file
-By Daniel Bisig
-
-Based on: https://gist.github.com/johnfredcee/2007503
-
-'''
-import re
 import numpy as np
+import pandas as pd
+import re
 
-class BVH_Joint():
-    def __init__(self, name, parent=None, children=None):
-        self.name = name
-        self.parent = parent
-        self.children = children
+class BVHScanner:
+    def __init__(self):
+        self.rules = [
+            ('ROOT', r'ROOT'),
+            ('JOINT', r'JOINT'),
+            ('End_Site', r'End Site'),
+            ('HIERARCHY', r'HIERARCHY'),
+            ('MOTION', r'MOTION'),
+            ('Frames', r'Frames:'),
+            ('Frame', r'Frame'),
+            ('Time', r'Time:'),
+            ('OFFSET', r'OFFSET'),
+            ('CHANNELS', r'CHANNELS'),
+            ('LBRACK', r'\{'),
+            ('RBRACK', r'\}'),
+            ('IDENT', r'[a-zA-Z_][a-zA-Z0-9_]*'),
+            # Broadened FLOAT to catch edge cases like -.05, .05, etc.
+            ('FLOAT', r'-*[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?'),
+            ('INTEGER', r'-?[0-9]+'),
+            # Use \s+ to safely consume Windows \r\n line endings
+            ('WS', r'\s+'), 
+        ]
+        self.rules = [(type, re.compile(regex)) for type, regex in self.rules]
 
-class BVH_Data():
+    def scan(self, text):
+        tokens = []
+        pos = 0
+        length = len(text)
+        
+        while pos < length:
+            match = None
+            for type, regex in self.rules:
+                # Use the 'pos' parameter to search without slicing the string
+                match = regex.match(text, pos)
+                if match:
+                    if type != 'WS':
+                        tokens.append((type, match.group(0)))
+                    pos = match.end()
+                    break
+                    
+            if not match:
+                raise SyntaxError(f'Unexpected token at {text[pos:pos+20]}')
+                
+        return tokens
+
+class BVHData:
     def __init__(self):
         self.skeleton = {}
-        self.values = None
         self.channel_names = []
-        self.framerate = 0.0
+        self.values = pd.DataFrame()
         self.root_name = ''
-    
-    def traverse(self, j=None):
-        stack = [self.root_name]
-        while stack:
-            joint = stack.pop()
-            yield joint
-            for c in self.skeleton[joint]['children']:
-                stack.append(c)
+        self.framerate = 0.0
+        self.times_per_joint = {} # ADDED: holds keyframe times per joint name
 
-    def clone(self):
-        import copy
-        new_data = BVH_Data()
-        new_data.skeleton = copy.copy(self.skeleton)
-        new_data.values = copy.copy(self.values)
-        new_data.channel_names = copy.copy(self.channel_names)
-        new_data.root_name = copy.copy(self.root_name)
-        new_data.framerate = copy.copy(self.framerate)
-        return new_data
+class BVH_Tools:
 
-    def get_all_channels(self):
-        '''Returns all of the channels parsed from the file as a 2D numpy array'''
-
-        frames = [f[1] for f in self.values]
-        return np.asarray([[channel[2] for channel in frame] for frame in frames])
-
-class BVH_Scanner():
-    '''
-    A wrapper class for re.Scanner
-    '''
     def __init__(self):
-
-        def identifier(scanner, token):
-            return 'IDENT', token
-
-        def operator(scanner, token):
-            return 'OPERATOR', token
-
-        def digit(scanner, token):
-            return 'DIGIT', token
-
-        def open_brace(scanner, token):
-            return 'OPEN_BRACE', token
-
-        def close_brace(scanner, token):
-            return 'CLOSE_BRACE', token
-
-        self.scanner = re.Scanner([
-            (r'[a-zA-Z_]\w*', identifier),
-            #(r'-*[0-9]+(\.[0-9]+)?', digit), # won't work for .34
-            #(r'[-+]?[0-9]*\.?[0-9]+', digit), # won't work for 4.56e-2
-            #(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?', digit),
-            (r'-*[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?', digit),
-            (r'}', close_brace),
-            (r'}', close_brace),
-            (r'{', open_brace),
-            (r':', None),
-            (r'\s+', None)
-        ])
-
-    def scan(self, stuff):
-        return self.scanner.scan(stuff)
-
-
-
-class BVH_Tools():
-    '''
-    A class to parse a BVH file.
-    
-    Extracts the skeleton and channel values
-    '''
-    def __init__(self, filename=None):
         self.reset()
-
-    def reset(self): 
+        
+    def reset(self):
+        self.scanner = BVHScanner()
+        self.data = BVHData()
         self._skeleton = {}
-        self.bone_context = []
         self._motion_channels = []
         self._motions = []
         self.current_token = 0
-        self.framerate = 0.0
         self.root_name = ''
-
-        self.scanner = BVH_Scanner()
-        self.data = BVH_Data()
-
+        self.framerate = 0.0
 
     def load(self, filename):
         self.reset()
 
         with open(filename, 'r') as bvh_file:
             raw_contents = bvh_file.read()
-        tokens, remainder = self.scanner.scan(raw_contents)
+
+        tokens = self.scanner.scan(raw_contents)
         self._parse_hierarchy(tokens)
-        self.current_token = self.current_token + 1
         self._parse_motion(tokens)
         
         self.data.skeleton = self._skeleton
@@ -130,149 +89,98 @@ class BVH_Tools():
 
         return self.data
     
-    def write(self, data, filename):
-        self.reset()
-        
-        self.data = data
-        
-        with open(filename, "w") as file:
-            file.write("HIERARCHY\n")
-            self._write_hierarchy(self.data.root_name, indent="", file=file)
-            file.write("MOTION\n")
-            self._write_motion(file=file)
-
-    def _to_DataFrame(self):
-        '''Returns all of the channels parsed from the file as a pandas DataFrame'''
-
-        import pandas as pd
-        time_index = pd.to_timedelta([f[0] for f in self._motions], unit='s')
-        frames = [f[1] for f in self._motions]
-        channels = np.asarray([[channel[2] for channel in frame] for frame in frames])
-        column_names = ['%s_%s'%(c[0], c[1]) for c in self._motion_channels]
-
-        return pd.DataFrame(data=channels, index=time_index, columns=column_names)
-
-
-    def _new_bone(self, parent, name):
-        bone = {'parent': parent, 'channels': [], 'offsets': [],'children': []}
-        return bone
-
-    def _push_bone_context(self,name):
-        self.bone_context.append(name)
-
-    def _get_bone_context(self):
-        return self.bone_context[len(self.bone_context)-1]
-
-    def _pop_bone_context(self):
-        self.bone_context = self.bone_context[:-1]
-        return self.bone_context[len(self.bone_context)-1]
-
-    def _read_offset(self, bvh, token_index):
-        if bvh[token_index] != ('IDENT', 'OFFSET'):
-            return None, None
-        token_index = token_index + 1
-        offsets = [0.0] * 3
-        for i in range(3):
-            offsets[i] = float(bvh[token_index][1])
-            token_index = token_index + 1
-        return offsets, token_index
-    
-    def _read_channels(self, bvh, token_index):
-        if bvh[token_index] != ('IDENT', 'CHANNELS'):
-            return None, None
-        token_index = token_index + 1
-        channel_count = int(bvh[token_index][1])
-        token_index = token_index + 1
-        channels = [""] * channel_count
-        for i in range(channel_count):
-            channels[i] = bvh[token_index][1]
-            token_index = token_index + 1
-        return channels, token_index
-
-    def _parse_joint(self, bvh, token_index):
-        end_site = False
-        joint_id = bvh[token_index][1]
-        token_index = token_index + 1
-        joint_name = bvh[token_index][1]
-        token_index = token_index + 1
-        
-        parent_name = self._get_bone_context()
-
-        if (joint_id == "End"):
-            joint_name = parent_name+ '_Nub'
-            end_site = True
-        joint = self._new_bone(parent_name, joint_name)
-        if bvh[token_index][0] != 'OPEN_BRACE':
-            print('Was expecting brance, got ', bvh[token_index])
-            return None
-        token_index = token_index + 1
-        offsets, token_index = self._read_offset(bvh, token_index)
-        joint['offsets'] = offsets
-        if not end_site:
-            channels, token_index = self._read_channels(bvh, token_index)
-            joint['channels'] = channels
-            for channel in channels:
-                self._motion_channels.append((joint_name, channel))
-
-        self._skeleton[joint_name] = joint
-        self._skeleton[parent_name]['children'].append(joint_name)
-
-        while (bvh[token_index][0] == 'IDENT' and bvh[token_index][1] == 'JOINT') or  (bvh[token_index][0] == 'IDENT' and bvh[token_index][1] == 'End'):
-            self._push_bone_context(joint_name)
-            token_index = self._parse_joint(bvh, token_index)
-            self._pop_bone_context()
-
-        if bvh[token_index][0] == 'CLOSE_BRACE':
-            return token_index + 1
-
-        print('Unexpected token ', bvh[token_index])
-
     def _parse_hierarchy(self, bvh):
         self.current_token = 0
-        if bvh[self.current_token] != ('IDENT', 'HIERARCHY'):
+        if bvh[self.current_token][0] != 'HIERARCHY':
             return None
         self.current_token = self.current_token + 1
-        if bvh[self.current_token] != ('IDENT', 'ROOT'):
+        if bvh[self.current_token][0] != 'ROOT':
             return None
         self.current_token = self.current_token + 1
         if bvh[self.current_token][0] != 'IDENT':
             return None
+        self.root_name = bvh[self.current_token][1]
+        self._parse_joint(bvh)
 
-        root_name = bvh[self.current_token][1]
-        root_bone = self._new_bone(None, root_name)
-        self.current_token = self.current_token + 2 #skipping open brace
-        offsets, self.current_token = self._read_offset(bvh, self.current_token)
-        channels, self.current_token = self._read_channels(bvh, self.current_token)
-        root_bone['offsets'] = offsets
-        root_bone['channels'] = channels
-        self._skeleton[root_name] = root_bone
-        self._push_bone_context(root_name)
-        
-        for channel in channels:
-            self._motion_channels.append((root_name, channel))
+    def _parse_joint(self, bvh, is_end_site=False, parent_name=""):
+        # If it's an End Site, there is no name token in the file. 
+        # We auto-generate one using the parent's name.
+        if is_end_site:
+            joint_name = parent_name + '_EndSite'
+        else:
+            joint_name = bvh[self.current_token][1]
+            self.current_token = self.current_token + 1
 
-        while bvh[self.current_token][1] == 'JOINT':
-            self.current_token = self._parse_joint(bvh, self.current_token)
+        joint_data = {'name': joint_name, 'offset': [], 'channels': [], 'children': []}
+
+        if bvh[self.current_token][0] != 'LBRACK':
+            return None
+        self.current_token = self.current_token + 1
+        if bvh[self.current_token][0] != 'OFFSET':
+            return None
+        self.current_token = self.current_token + 1
         
-        self.root_name = root_name
+        for i in range(3):
+            if bvh[self.current_token][0] not in ['FLOAT', 'INTEGER']:
+                return None
+            joint_data['offset'].append(float(bvh[self.current_token][1]))
+            self.current_token = self.current_token + 1
+            
+        if bvh[self.current_token][0] == 'CHANNELS':
+            self.current_token = self.current_token + 1
+            num_channels = int(bvh[self.current_token][1])
+            self.current_token = self.current_token + 1
+            for i in range(num_channels):
+                channel_name = bvh[self.current_token][1]
+                joint_data['channels'].append(channel_name)
+                self._motion_channels.append((joint_name, channel_name))
+                self.current_token = self.current_token + 1
+                
+        # FIX: Add the joint to the dictionary BEFORE parsing its children,
+        # so that parents always appear before children in the skeleton keys!
+        self._skeleton[joint_name] = joint_data
+                
+        while bvh[self.current_token][0] in ['JOINT', 'End_Site']:
+            is_child_end_site = (bvh[self.current_token][0] == 'End_Site')
+            self.current_token = self.current_token + 1
+            
+            child_data = self._parse_joint(bvh, is_end_site=is_child_end_site, parent_name=joint_name)
+            
+            if child_data is None:
+                print(f"Error parsing child of {joint_name}")
+                return None
+                
+            joint_data['children'].append(child_data['name'])
+
+        if bvh[self.current_token][0] != 'RBRACK':
+            return None
+        
+        self.current_token = self.current_token + 1
+
+        return joint_data
 
     def _parse_motion(self, bvh):
-        if bvh[self.current_token][0] != 'IDENT':
-            print('Unexpected text')
-            return None
-        if bvh[self.current_token][1] != 'MOTION':
-            print('No motion section')
+        
+        # Check by token type (index 0) to avoid mismatch issues
+        if bvh[self.current_token][0] != 'MOTION':
+            print('Unexpected text, expected MOTION')
             return None
         self.current_token = self.current_token + 1
-        if bvh[self.current_token][1] != 'Frames':
+        
+        if bvh[self.current_token][0] != 'Frames':
+            print('Unexpected text, expected Frames:')
             return None
         self.current_token = self.current_token + 1
         frame_count = int(bvh[self.current_token][1])
         self.current_token = self.current_token + 1
-        if bvh[self.current_token][1] != 'Frame':
+        
+        if bvh[self.current_token][0] != 'Frame':
+            print('Unexpected text, expected Frame Time:')
             return None
         self.current_token = self.current_token + 1
-        if bvh[self.current_token][1] != 'Time':
+        
+        if bvh[self.current_token][0] != 'Time':
+            print('Unexpected text, expected Time:')
             return None
         self.current_token = self.current_token + 1
         frame_rate = float(bvh[self.current_token][1])
@@ -291,47 +199,119 @@ class BVH_Tools():
             self._motions[i] = (frame_time, channel_values)
             frame_time = frame_time + frame_rate
             
-    def _write_hierarchy(self, joint_name, indent, file):
+        joint_names = set(channel[0] for channel in self._motion_channels)
+        time_array = np.arange(frame_count) * frame_rate
+        self.data.times_per_joint = {j_name: time_array for j_name in joint_names}
+
+    def _to_DataFrame(self):
+        time = [m[0] for m in self._motions]
+        cols = [c[0] + '_' + c[1] for c in self._motion_channels]
+        data = np.array([[c[2] for c in m[1]] for m in self._motions])
+        df = pd.DataFrame(data, index=time, columns=cols)
+        return df
+
+
+class bvhWriter:
+    """
+    A class for writing BVH files from mocap data.
+    """
+    
+    def __init__(self, mocap_data):
+        self.mocap_data = mocap_data
         
-        joint_is_root = self.data.skeleton[joint_name]["parent"] == None
-        joint_is_nub = len(self.data.skeleton[joint_name]["children"]) == 0
-        joint_offset = self.data.skeleton[joint_name]["offsets"]
-        joint_channels = self.data.skeleton[joint_name]["channels"]
-        joint_children = self.data.skeleton[joint_name]["children"]
+    def write(self, filename):
         
-        if joint_is_root == True:
-            file.write("{}ROOT {}\n".format(indent, joint_name))
-        elif joint_is_nub == True:
-            file.write("{}End Site\n".format(indent))
-        else:
-            file.write("{}JOINT {}\n".format(indent, joint_name))
+        skeleton_data = self.mocap_data["skeleton"]
+        motion_data = self.mocap_data["motion"]
+        
+        # open file
+        bvh_file = open(filename, 'w')
+        
+        # write hierarchy
+        bvh_file.write("HIERARCHY\n")
+        
+        joints = skeleton_data["joints"]
+        parents = skeleton_data["parents"]
+        children = skeleton_data["children"]
+        offsets = skeleton_data["offsets"]
+        
+        self.write_hierarchy(bvh_file, 0, joints, parents, children, offsets, 0)
+        
+        # write motion
+        bvh_file.write("MOTION\n")
+        
+        pos_local = motion_data["pos_local"]
+        rot_local_euler = motion_data["rot_local_euler"]
+
+        rot_sequence = self.mocap_data["rot_sequence"]
+        frame_rate = self.mocap_data["frame_rate"]
+        
+        # check number of frames
+        if pos_local.shape[0] != rot_local_euler.shape[0]:
+            print("ERROR: pos_local and rot_local_euler have different number of frames")
             
-        file.write("{}".format(indent) + "{\n")
-        file.write("  {}OFFSET {} {} {}\n".format(indent, joint_offset[0], joint_offset[1], joint_offset[2]))
+        frame_count = pos_local.shape[0]
         
-        if len(joint_channels) > 0:
-            file.write("  {}CHANNELS {}".format(indent, len(joint_channels)))
-            for channel in joint_channels:
-                file.write(" {}".format(channel))
-            file.write("\n")
+        bvh_file.write("Frames: " + str(frame_count) + "\n")
+        bvh_file.write("Frame Time: " + str(frame_rate) + "\n")
+        
+        self.write_motion(bvh_file, pos_local, rot_local_euler, rot_sequence)
 
-        for child in joint_children:
-            self._write_hierarchy(child, "{}  ".format(indent), file)
+        # close file
+        bvh_file.close()
         
-        file.write("{}".format(indent) + "}\n")
+    def write_hierarchy(self, bvh_file, joint_index, joints, parents, children, offsets, level):
 
-          
-    def _write_motion(self, file):
+        indent = "    " * level
         
-        frame_count = self.data.values.shape[0]
-        col_count = self.data.values.shape[1]
+        # write joint name
+        if level == 0:
+            bvh_file.write(indent + "ROOT " + joints[joint_index] + "\n")
+        else:
+            bvh_file.write(indent + "JOINT " + joints[joint_index] + "\n")
+            
+        bvh_file.write(indent + "{\n")
         
-        file.write("Frames:	{}\n".format(frame_count))
-        file.write("Frame Time:	{}\n".format(self.data.framerate))
+        # write offset
+        offset = offsets[joint_index]
+        bvh_file.write(indent + "    OFFSET " + str(offset[0]) + " " + str(offset[1]) + " " + str(offset[2]) + "\n")
         
-        for frame in range(frame_count):
-            for col in range(col_count):
+        # write channels
+        if level == 0:
+            bvh_file.write(indent + "    CHANNELS 6 Xposition Yposition Zposition Xrotation Yrotation Zrotation\n")
+        else:
+            bvh_file.write(indent + "    CHANNELS 3 Xrotation Yrotation Zrotation\n")
+            
+        # write children
+        joint_children = children[joint_index]
+        
+        if len(joint_children) == 0:
+            bvh_file.write(indent + "    End Site\n")
+            bvh_file.write(indent + "    {\n")
+            bvh_file.write(indent + "        OFFSET 0.0 0.0 0.0\n")
+            bvh_file.write(indent + "    }\n")
+        else:
+            for child_index in joint_children:
+                self.write_hierarchy(bvh_file, child_index, joints, parents, children, offsets, level + 1)
                 
-                value = self.data.values.iat[frame, col]
-                file.write("{} ".format(value))
-            file.write("\n")
+        bvh_file.write(indent + "}\n")
+
+    def write_motion(self, bvh_file, pos_local, rot_local_euler, rot_sequence):
+
+        # loop through frames
+        for frame_index in range(pos_local.shape[0]):
+            
+            # loop through joints
+            for joint_index in range(pos_local.shape[1]):
+                
+                # get joint data
+                pos = pos_local[frame_index, joint_index, :]
+                rot = rot_local_euler[frame_index, joint_index, :]
+                
+                # write joint data
+                if joint_index == 0:
+                    bvh_file.write(str(pos[0]) + " " + str(pos[1]) + " " + str(pos[2]) + " ")
+                    
+                bvh_file.write(str(rot[0]) + " " + str(rot[1]) + " " + str(rot[2]) + " ")
+                
+            bvh_file.write("\n")
