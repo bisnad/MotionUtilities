@@ -29,11 +29,8 @@ class PoseCanvasUpdater(QtCore.QObject):
 
 class CustomGLViewWidget(gl.GLViewWidget):
     def __init__(self, default_dist=250, default_azi=-90, default_ele=90, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, rotationMethod='quaternion', **kwargs)
 
-        # Important: avoid Euler pole / roll weirdness
-        self.opts['rotationMethod'] = 'quaternion'
-        
         self.default_dist = default_dist
         self.default_azi = default_azi
         self.default_ele = default_ele
