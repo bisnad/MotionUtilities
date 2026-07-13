@@ -32,3 +32,6 @@
 /MocapPlayer_v3/.spyproject
 /SensorRecorder_v2/.spyproject
 /MocapPlayer_v3_
+/MocapPlayer_v2_npz/.spyproject
+/MocapPlayer_v2_npz/__pycache__
+/MocapPlayer_v2_npz/common/__pycache__
