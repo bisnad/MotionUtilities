@@ -10,11 +10,12 @@ import motion_gui
 Setup Motion Player
 """
 
-
+"""
 motion_player.config = { 
     "file_name": "data/mocap/Take_3_50fps_crop.fbx",
     "fps": 50
     }
+"""
 
 """
 motion_player.config = { 
@@ -68,18 +69,24 @@ motion_player.config = {
 
 """
 motion_player.config = { 
-    "file_name": "../../../Data/Mocap/Pose3D/Stocos/Solos/Stocos_Pose3D_BlumenBaile.pkl",
-    "skel_parents": [-1, 0, 1, 2, 0, 4, 5, 0, 7, 8, 9, 8, 11, 12, 8, 14, 15 ],
+    "file_name": "../../../Data/Mocap/Pose3D/Stocos/Solos/Stocos_DoubleBind_MediaPipe.fbx",
     "fps": 30
     }
 """
 
 """
 motion_player.config = { 
-    "file_name": "../../../Data/Mocap/Pose3D/Stocos/Solos/Stocos_DoubleBind_MediaPipe.fbx",
+    "file_name": "C:/Users/dbisig/Projects/Premiere/Software_Git2/MotionUtilities/SensorRecorder_v2/recordings/Yurika_Test_Mediapipe_all.npz",
+    "topology_file_name": "data/configs/Mediapipe_config.json",
     "fps": 30
     }
 """
+
+
+motion_player.config = { 
+    "file_name": "E:/Data/mocap/Yurika/Mediapipe_v2_fbx/Classes/Everyday/Yurika_Everyday_Mediapipe_all.fbx",
+    "fps": 30
+    }
 
 player = motion_player.MotionPlayer(motion_player.config)
 

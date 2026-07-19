@@ -234,7 +234,7 @@ class MotionGui(QtWidgets.QWidget):
         self.update_gui_labels()
                 
     def choose_file(self):
-        file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 'mocap',"Mocap Files (*.bvh *.fbx *npz)")
+        file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 'mocap',"Mocap Files (*.bvh *.fbx)")
         file_name = file_name[0]
         if len(file_name) == 0:
             return

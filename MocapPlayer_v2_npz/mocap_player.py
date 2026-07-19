@@ -75,10 +75,18 @@ motion_player.config = {
     }
 """
 
+"""
 motion_player.config = { 
     "file_name": "C:/Users/dbisig/Projects/IntuitionMachine/Data/Mocap/Classes/004_Smelling_ImprovisationAroundRangeOfArticulations_RicardoVasquezAllen.npz",
     "skel_parents": [-1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 12, 13, 14, 15, 12, 17, 18, 19, 12, 21],
     "fps": 60
+    }
+"""
+
+motion_player.config = { 
+    "file_name": "E:/Data/mocap/Yurika/Mediapipe/Classes/Yurika_Test_Mediapipe_realtime.npz",
+    "skel_parents": [-1,0,1,2,0,4,5,3,6,0,0,0,0,11,12,13,14,15,20,15,16,15,20,0,0,23,24,25,26,27,28,27,28],
+    "fps": 30
     }
 
 """
