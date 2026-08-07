@@ -1,3 +1,7 @@
+"""
+Imports
+"""
+
 import sys
 import time
 import queue
@@ -14,8 +18,9 @@ from vispy.app import use_app
 from vispy.scene import SceneCanvas, visuals
 
 """
-High-Precision Playback Thread (Looping & Subrange)
+Playback Thread
 """
+
 class PlaybackThread(QtCore.QThread):
     progress_update = QtCore.pyqtSignal(float)
     playback_finished = QtCore.pyqtSignal()
@@ -74,7 +79,6 @@ class PlaybackThread(QtCore.QThread):
             last_gui_update = thread_start_time
             
             for timestamp, addr, values in active_events:
-                # FIX 1: Change 'return' to 'break' so it cascades down to emit the signal
                 if not self.is_playing:
                     break 
                     
@@ -86,7 +90,6 @@ class PlaybackThread(QtCore.QThread):
                 
                 # Hybrid Precision Wait
                 while True:
-                    # FIX 2: Check is_playing inside the sleep loop for instant stop response
                     if not self.is_playing:
                         break
                     now = time.perf_counter()
@@ -127,8 +130,9 @@ class PlaybackThread(QtCore.QThread):
 
 
 """
-Optimized VisPy Components
+VisPy-based GUI Components
 """
+
 def generate_colors(n):
     return [colorsys.hsv_to_rgb(i/n, 0.8, 0.9) + (1.0,) for i in range(n)]
 
@@ -319,6 +323,7 @@ class AdaptiveCanvas:
 """
 Main Application
 """
+
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
@@ -645,6 +650,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         self.stop_playback()
         event.accept()
+
+"""
+Run Application
+"""
 
 if __name__ == "__main__":
     app = use_app("pyqt5")

@@ -1,3 +1,7 @@
+"""
+Imports
+"""
+
 import sys
 import math
 import time
@@ -21,12 +25,14 @@ from vispy.scene import SceneCanvas, visuals
 """
 OSC Settings
 """
+
 osc_receive_ip = "0.0.0.0"
 osc_receive_port = 9007
 
 """
 OSC Receiver
 """
+
 class OscReceiver:
     def __init__(self, ip, port, msg_queue):
         self.ip = ip
@@ -53,6 +59,7 @@ class OscReceiver:
 """
 Motion Recorder
 """
+
 class MotionRecorder:
     def __init__(self):
         self.recording_active = False
@@ -102,8 +109,9 @@ class MotionRecorder:
         print(f"Saved: {filename}")
 
 """
-VisPy GUI Components
+GUI Components
 """
+
 def generate_colors(n):
     return [colorsys.hsv_to_rgb(i/n, 0.8, 0.9) + (1.0,) for i in range(n)]
 
@@ -382,8 +390,9 @@ class AdaptiveCanvas:
             self.views[addr].update_data(values, autoscale_active)
 
 """
-Main Application & Main Thread Event Loop
+Main Application & Thread Event Loop
 """
+
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, osc_queue, recorder, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -527,6 +536,10 @@ class MainWindow(QtWidgets.QMainWindow):
         print("Closing main window...")
         self.recorder.stop_record()
         event.accept()
+
+"""
+Run Application
+"""
 
 if __name__ == "__main__":
     app = use_app("pyqt5")

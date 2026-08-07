@@ -84,8 +84,12 @@ class MotionGui(QtWidgets.QWidget):
     
         # header
         file_name = getattr(self.player, 'file_name', "No file loaded")
-        
         self.q_file_label = QtWidgets.QLabel(Path(file_name).stem)
+
+        self.topology_file_name = config.get("topology_file_name", "")
+        topo_name = Path(self.topology_file_name).stem if self.topology_file_name else "No topology loaded"
+        self.q_topo_label = QtWidgets.QLabel("Topology: " + topo_name)
+
         self.q_time_label = QtWidgets.QLabel("Time: 0.00s | Loop: 0.00s - 0.00s", self)
 
         # Pose canvas setup
@@ -114,8 +118,11 @@ class MotionGui(QtWidgets.QWidget):
         self.skeleton_items = {}
         
         # Buttons
-        self.q_load_buttom = QtWidgets.QPushButton("load", self)
+        self.q_load_buttom = QtWidgets.QPushButton("load Mocap", self)
         self.q_load_buttom.clicked.connect(self.choose_file)  
+
+        self.q_load_topo_button = QtWidgets.QPushButton("Load Topo", self)
+        self.q_load_topo_button.clicked.connect(self.choose_topo_file)
 
         self.q_start_buttom = QtWidgets.QPushButton("start", self)
         self.q_start_buttom.clicked.connect(self.start)  
@@ -138,13 +145,14 @@ class MotionGui(QtWidgets.QWidget):
         
         self.q_button_grid = QtWidgets.QGridLayout()
         self.q_button_grid.addWidget(self.q_load_buttom, 0, 0)
-        self.q_button_grid.addWidget(self.q_start_buttom, 0, 1)
-        self.q_button_grid.addWidget(self.q_stop_buttom, 0, 2)
-        self.q_button_grid.addWidget(self.q_exit_button, 0, 3)
-        self.q_button_grid.addWidget(QtWidgets.QLabel("FPS:"), 0, 4, alignment=Qt.AlignRight)
-        self.q_button_grid.addWidget(self.q_fps, 0, 5)
-        self.q_button_grid.addWidget(QtWidgets.QLabel("Follow:"), 0, 6, alignment=Qt.AlignRight)
-        self.q_button_grid.addWidget(self.q_skeleton_selector, 0, 7)
+        self.q_button_grid.addWidget(self.q_load_topo_button, 0, 1)
+        self.q_button_grid.addWidget(self.q_start_buttom, 0, 2)
+        self.q_button_grid.addWidget(self.q_stop_buttom, 0, 3)
+        self.q_button_grid.addWidget(self.q_exit_button, 0, 4)
+        self.q_button_grid.addWidget(QtWidgets.QLabel("FPS:"), 0, 5, alignment=Qt.AlignRight)
+        self.q_button_grid.addWidget(self.q_fps, 0, 6)
+        self.q_button_grid.addWidget(QtWidgets.QLabel("Follow:"), 0, 7, alignment=Qt.AlignRight)
+        self.q_button_grid.addWidget(self.q_skeleton_selector, 0, 8)
         
         # We will use sliders with a 0-1000 range to represent percentage of max play time
         self.q_time_slider = QtWidgets.QSlider(Qt.Horizontal, self)
@@ -204,23 +212,25 @@ class MotionGui(QtWidgets.QWidget):
     
         # final layout
         self.q_grid = QtWidgets.QGridLayout()
-        self.q_grid.addWidget(self.q_file_label,0,0)
-        self.q_grid.addWidget(self.q_time_label,1,0)
-        self.q_grid.addWidget(self.pose_canvas,2,0)
-        self.q_grid.addWidget(self.q_time_slider,3,0)
-        self.q_grid.addWidget(self.q_start_time_slider,4,0)
-        self.q_grid.addWidget(self.q_end_time_slider,5,0)
-        self.q_grid.addLayout(self.q_button_grid,6,0)
-        self.q_grid.addLayout(self.q_sender_grid,7,0)
+        self.q_grid.addWidget(self.q_file_label, 0, 0)
+        self.q_grid.addWidget(self.q_topo_label, 1, 0)
+        self.q_grid.addWidget(self.q_time_label, 2, 0)
+        self.q_grid.addWidget(self.pose_canvas, 3, 0)
+        self.q_grid.addWidget(self.q_time_slider, 4, 0)
+        self.q_grid.addWidget(self.q_start_time_slider, 5, 0)
+        self.q_grid.addWidget(self.q_end_time_slider, 6, 0)
+        self.q_grid.addLayout(self.q_button_grid, 7, 0)
+        self.q_grid.addLayout(self.q_sender_grid, 8, 0)
         
         self.q_grid.setRowStretch(0, 0)
         self.q_grid.setRowStretch(1, 0)
-        self.q_grid.setRowStretch(2, 1)
-        self.q_grid.setRowStretch(3, 0)
+        self.q_grid.setRowStretch(2, 0)
+        self.q_grid.setRowStretch(3, 1)
         self.q_grid.setRowStretch(4, 0)
         self.q_grid.setRowStretch(5, 0)
         self.q_grid.setRowStretch(6, 0)
         self.q_grid.setRowStretch(7, 0)
+        self.q_grid.setRowStretch(8, 0)
         
         self.setLayout(self.q_grid)
 
@@ -234,11 +244,25 @@ class MotionGui(QtWidgets.QWidget):
         self.update_gui_labels()
                 
     def choose_file(self):
-        file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 'mocap',"Mocap Files (*.bvh *.fbx)")
+        file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 'mocap',"Mocap Files (*.bvh *.fbx *.npz)")
         file_name = file_name[0]
         if len(file_name) == 0:
             return
         self.load_file(file_name)
+
+    def choose_topo_file(self):
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, 'Open Topology File', '', "Topology Files (*.json *.yaml *.txt);;All Files (*.*)"
+        )
+        if len(file_name) == 0:
+            return
+            
+        self.topology_file_name = file_name
+        self.q_topo_label.setText("Topology: " + Path(file_name).stem)
+        
+        # Optional: If you want it to immediately reload the current NPZ file using the new topology
+        if hasattr(self.player, 'file_name') and self.player.file_name.lower().endswith(".npz"):
+            self.load_file(self.player.file_name)
         
     def load_file(self, file_name):
         sender_active = self.sender.get_active() if self.sender else False
@@ -248,10 +272,17 @@ class MotionGui(QtWidgets.QWidget):
         self.q_file_label.setText("Loading...")
         self.q_file_label.repaint()
         
-        self.player.load(file_name)
+        # Branch loading logic based on extension
+        if file_name.lower().endswith(".npz"):
+            if not getattr(self, 'topology_file_name', ""):
+                print("Warning: Loading NPZ file but no topology file is set.")
+            self.player.load(file_name, self.topology_file_name)
+        else:
+            # BVH and FBX don't need the topology file
+            self.player.load(file_name)
         
         self.change_fps(self.player.get_fps())
-        self.q_file_label.setText(Path(file_name).stem)
+        self.q_file_label.setText("Mocap: " + Path(file_name).stem)
         
         self.q_time_slider.setValue(0)
         self.update_gui_labels()

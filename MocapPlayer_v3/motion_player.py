@@ -8,13 +8,15 @@ from common import mocap_tools as mocap
 
 config = { 
     "file_name": "",
+    "topology_file_name": "",
     "fps": 50
     }
 
 class MotionPlayer():
     def __init__(self, config):
-        self.file_name = config["file_name"]
-        self.base_fps = config["fps"]
+        self.file_name = config.get("file_name", "")
+        self.topology_file_name = config.get("topology_file_name", "")
+        self.base_fps = config.get("fps", 50)
 
         self.skeletons_data = [] 
         

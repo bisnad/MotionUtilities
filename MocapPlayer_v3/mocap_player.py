@@ -1,5 +1,14 @@
+"""
+Imports
+"""
 
 import os, sys, time, subprocess
+from pathlib import Path
+
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt
+import pyqtgraph as pg
+import pyqtgraph.opengl as gl
 
 import motion_player 
 import motion_sender
@@ -10,16 +19,13 @@ import motion_gui
 Setup Motion Player
 """
 
-"""
-motion_player.config = { 
-    "file_name": "data/mocap/Take_3_50fps_crop.fbx",
-    "fps": 50
-    }
-"""
+motion_player.config["file_name"] = "data/mocap/Muriel_Take1.fbx"
+motion_player.config["fps"] = 50
+
 
 """
 motion_player.config = { 
-    "file_name": "E:/Data/mocap/stocos/Solos/MovementQualities/fbx_50hz/staccato_rightarm_take1.fbx",
+    "file_name": "E:/Data/mocap/stocos/Solos/MovementQualities/fbx_50hz_nohand/polytopia_fullbody_take2_noh.fbx",
     "fps": 50
     }
 """
@@ -76,23 +82,38 @@ motion_player.config = {
 
 """
 motion_player.config = { 
-    "file_name": "C:/Users/dbisig/Projects/Premiere/Software_Git2/MotionUtilities/SensorRecorder_v2/recordings/Yurika_Test_Mediapipe_all.npz",
+    "file_name": "E:/Data/mocap/Yurika/Mediapipe_v2/Classes/Rythm/Yurika_Rythm_Mediapipe_realtime.npz",
     "topology_file_name": "data/configs/Mediapipe_config.json",
     "fps": 30
     }
 """
 
-
+"""
 motion_player.config = { 
     "file_name": "E:/Data/mocap/Yurika/Mediapipe_v2_fbx/Classes/Everyday/Yurika_Everyday_Mediapipe_all.fbx",
     "fps": 30
     }
+"""
+
+"""
+motion_player.config = { 
+    "file_name": "E:/Data/mocap/Yurika/Mediapipe_v2/Classes/Yurika_Test_Mediapipe_realtime.npz",
+    "topology_file_name": "data/configs/Mediapipe_config.json",
+    "fps": 30
+    }
+"""
+"""
+motion_player.config = { 
+    "file_name": "/Users/dbisig/Projects/Premiere/Software_Git2/MotionUtilities/SensorRecorder_v2/recordings/ExpressiveAliens_Bipet_Constant_SAC_v2_run17.npz",
+    "topology_file_name": "data/configs/ExpressiveAliens_Biped_v2.json",
+    "fps": 30
+    }
+"""
 
 player = motion_player.MotionPlayer(motion_player.config)
 
-
 """
-OSC Sender
+Setup OSC Sender
 """
 
 motion_sender.config["ip"] = "127.0.0.1"
@@ -104,16 +125,9 @@ osc_sender = motion_sender.OscSender(motion_sender.config)
 Setup Motion GUI
 """
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
-import pyqtgraph as pg
-import pyqtgraph.opengl as gl
-from pathlib import Path
-
 motion_gui.config["player"] = player
 motion_gui.config["sender"] = osc_sender
 motion_gui.config["view_scale"] = 1.0
-#motion_gui.config["view_scale"] = 100.0
 
 app = QtWidgets.QApplication(sys.argv)
 gui = motion_gui.MotionGui(motion_gui.config)
@@ -124,7 +138,7 @@ def closeEvent():
 app.lastWindowClosed.connect(closeEvent) # myExitHandler is a callable
 
 """
-OSC Control
+Setup OSC Receiver
 """
 
 motion_control.config["gui"] = gui
@@ -132,7 +146,6 @@ motion_control.config["ip"] = "0.0.0.0"
 motion_control.config["port"] = 9002
 
 osc_control = motion_control.MotionControl(motion_control.config)
-
 
 """
 Start Application
