@@ -19,16 +19,18 @@ import motion_gui
 Setup Motion Player
 """
 
+"""
 motion_player.config["file_name"] = "data/mocap/Muriel_Take1.fbx"
 motion_player.config["fps"] = 50
-
-
 """
+
+
 motion_player.config = { 
-    "file_name": "E:/Data/mocap/stocos/Solos/MovementQualities/fbx_50hz_nohand/polytopia_fullbody_take2_noh.fbx",
-    "fps": 50
+    "file_name": "../../../Data/Mocap/Xsens/Stocos/Solos/npz_60hz/Muriel_Take1_double_Bind.npz",
+    "topology_file_name": "data/configs/XSensLive_config.json",
+    "fps": 60
     }
-"""
+
 
 """
 motion_player.config = { 
